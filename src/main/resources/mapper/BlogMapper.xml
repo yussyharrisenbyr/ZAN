@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.dianzan.mapper.BlogMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.dianzan.model.entity.Blog">
+            <id property="id" column="id" />
+            <result property="userId" column="userId" />
+            <result property="title" column="title" />
+            <result property="coverImg" column="coverImg" />
+            <result property="imageUrls" column="imageUrls" />
+            <result property="content" column="content" />
+            <result property="thumbCount" column="thumbCount" />
+            <result property="createTime" column="createTime" />
+            <result property="updateTime" column="updateTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,userId,title,coverImg,imageUrls,content,thumbCount,
+        createTime,updateTime
+    </sql>
+
+    <update id="batchUpdateThumbCount">
+        UPDATE blog
+        SET thumbCount = thumbCount + CASE id
+        <foreach collection="countMap.entrySet()" item="value" index="key">
+            WHEN #{key} THEN #{value}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="countMap.keySet()" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectAuthorStats" resultType="com.example.dianzan.model.vo.AuthorStatsVO">
+        SELECT b.userId,
+               COUNT(*) AS articleCount,
+               COALESCE(SUM(b.thumbCount), 0) AS likeCount,
+               COALESCE((SELECT COUNT(*)
+                         FROM favorite f
+                                  JOIN blog fb ON fb.id = f.blogId
+                         WHERE fb.userId = b.userId), 0) AS favoriteCount
+        FROM blog b
+        WHERE b.userId IN
+        <foreach collection="userIds" item="uid" open="(" separator="," close=")">
+            #{uid}
+        </foreach>
+        GROUP BY b.userId
+    </select>
+
+    <select id="selectWeeklyHotBlogs" resultType="com.example.dianzan.model.vo.HotBlogVO">
+        SELECT b.id           AS blogId,
+               b.title        AS title,
+               b.coverImg     AS coverImg,
+               b.userId       AS userId,
+               u.username     AS authorName,
+               u.avatarUrl    AS authorAvatarUrl,
+               b.thumbCount   AS thumbCount,
+               COUNT(t.id)    AS weeklyThumbCount
+        FROM thumb t
+                 JOIN blog b ON t.blogId = b.id
+                 LEFT JOIN user u ON b.userId = u.id
+        WHERE t.createTime >= #{since}
+        GROUP BY b.id, b.title, b.coverImg, b.userId, u.username, u.avatarUrl, b.thumbCount
+        ORDER BY weeklyThumbCount DESC, b.thumbCount DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectUserProfileStats" resultType="com.example.dianzan.model.vo.UserProfileStatsVO">
+        SELECT #{userId} AS userId,
+               COALESCE((SELECT COUNT(*) FROM blog WHERE userId = #{userId}), 0) AS blogCount,
+               COALESCE((SELECT SUM(thumbCount) FROM blog WHERE userId = #{userId}), 0)
+                   + COALESCE((SELECT COUNT(*)
+                               FROM favorite f
+                                        JOIN blog b ON b.id = f.blogId
+                               WHERE b.userId = #{userId}), 0) AS likedAndCollectedCount
+    </select>
+
+    <select id="selectTotalThumbCount" resultType="long">
+        SELECT COALESCE(SUM(thumbCount), 0)
+        FROM blog
+    </select>
+
+    <select id="selectDistinctAuthorCount" resultType="long">
+        SELECT COUNT(DISTINCT userId)
+        FROM blog
+    </select>
+
+</mapper>

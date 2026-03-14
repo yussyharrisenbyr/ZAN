@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>消息通知</title>
+  <link rel="stylesheet" href="/common-navbar.css">
+  <script src="/shell-embed-guard.js" data-shell-view="notifications"></script>
+  <style>
+    @view-transition {
+      navigation: auto;
+    }
+    @keyframes page-fade-in {
+      from { opacity: .96; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes page-fade-out {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: .98; transform: translateY(-6px); }
+    }
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: .18s;
+      animation-timing-function: ease;
+    }
+    ::view-transition-old(root) { animation-name: page-fade-out; }
+    ::view-transition-new(root) { animation-name: page-fade-in; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background:#ffffff;
+      margin:0;
+      color:#111827;
+    }
+    html.embedded-shell body,
+    body.embedded-shell {
+      background: transparent;
+      overflow-x: hidden;
+    }
+    html.embedded-shell .navbar,
+    html.embedded-shell .sidebar,
+    body.embedded-shell .navbar,
+    body.embedded-shell .sidebar {
+      display: none;
+    }
+    html.embedded-shell .main-layout,
+    body.embedded-shell .main-layout {
+      display: block;
+      padding-top: 0;
+    }
+    html.embedded-shell .content-area,
+    body.embedded-shell .content-area {
+      padding: 16px;
+    }
+    html.embedded-shell .page,
+    body.embedded-shell .page {
+      max-width: none;
+      padding-bottom: 24px;
+    }
+    .btn-login {
+      padding: 8px 20px;
+      background: #1e80ff;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-login:hover { background: #1168d4; }
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      position: relative;
+      font-size: 14px;
+      font-weight: 500;
+      color: #111827;
+    }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #1e80ff;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .user-dropdown {
+      display: none;
+      position: absolute;
+      top: 120%;
+      right: 0;
+      background: #fff;
+      border: 1px solid #ebebeb;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.1);
+      min-width: 140px;
+      overflow: hidden;
+      z-index: 200;
+    }
+    .user-dropdown a {
+      display: block;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #111827;
+      text-decoration: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .user-dropdown a:hover { background: #f5f5f5; }
+    .main-layout {
+      display:flex;
+      padding-top: var(--navbar-height);
+      align-items:flex-start;
+    }
+    .sidebar {
+      width: 200px;
+      position: sticky;
+      top: var(--navbar-height);
+      height: calc(100vh - var(--navbar-height));
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #555;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .nav-item:hover {
+      background-color: #f3f4f6;
+      color: #111827;
+    }
+    .nav-item.active {
+      background-color: #f3f4f6;
+      color: #111827;
+      font-weight: 600;
+    }
+    .nav-item span.icon {
+      width: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 1.5;
+    }
+    .content-area {
+      flex: 1;
+      min-width: 0;
+      padding: 24px;
+    }
+    .page {
+      max-width: 960px;
+      margin: 0;
+      padding: 0 0 48px;
+    }
+    .search-bar {
+      padding: 0 24px 16px;
+      background:#f5f6fa;
+      display:flex;
+      justify-content:center;
+    }
+    .search-input-wrap {
+      width: 420px;
+      max-width: 100%;
+      background:#f9fafb;
+      border-radius: 999px;
+      padding: 8px 14px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid #e5e7eb;
+    }
+    .search-input-wrap input {
+      border:none;
+      outline:none;
+      background:transparent;
+      font-size:15px;
+      color:#4b5563;
+      flex:1;
+    }
+    .search-icon {
+      color:#9ca3af;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .search-icon svg {
+      width:16px;
+      height:16px;
+      display:block;
+      stroke: currentColor;
+    }
+
+    .tabs-wrap {
+      background:#ffffff;
+      padding: 12px 0 4px;
+      border-bottom: 1px solid #f1f2f5;
+      display:flex;
+      justify-content:center;
+    }
+    .tabs {
+      display:inline-flex;
+      gap:8px;
+      background:#f3f4f6;
+      padding:4px;
+      border-radius:999px;
+    }
+    .tab {
+      min-width: 96px;
+      text-align:center;
+      padding:6px 16px;
+      font-size:14px;
+      color:#6b7280;
+      cursor:pointer;
+      border-radius:999px;
+      transition:all .15s;
+      position: relative;
+    }
+    .tab.active {
+      background:#111827;
+      color:#fff;
+      font-weight:600;
+    }
+
+    .wrap {
+      margin-top: 8px;
+      padding: 0 40px;
+    }
+    .section { display:none; }
+    .section.active { display:block; }
+
+    .item {
+      display:flex;
+      align-items:center;
+      padding:14px 0;
+      border-bottom:1px solid #f1f2f5;
+    }
+    .item.unread {
+      background: linear-gradient(90deg, rgba(17,24,39,0.03), transparent);
+    }
+    .avatar {
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      background:#1e80ff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      color:#fff;
+      overflow:hidden;
+      margin-right:14px;
+      flex-shrink:0;
+    }
+    .avatar img {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+    .content {
+      flex:1;
+      font-size:15px;
+      color:#111827;
+      line-height:1.4;
+    }
+    .nickname {
+      font-weight:600;
+      margin-bottom:2px;
+    }
+    .desc {
+      font-size:14px;
+      color:#4b5563;
+    }
+    .meta {
+      font-size:13px;
+      color:#9ca3af;
+      margin-top:4px;
+    }
+    .comment-snippet {
+      margin-top:6px;
+      font-size:14px;
+      color:#4b5563;
+      background:#f9fafb;
+      padding:6px 8px;
+      border-radius:6px;
+    }
+
+    /* 可点击区域（用户 / 文章） */
+    .u-link,
+    .blog-link {
+      cursor: pointer;
+    }
+    .u-link:hover,
+    .blog-link:hover {
+      text-decoration: underline;
+    }
+    .nickname .u-link {
+      color: #111827;
+    }
+    .desc .blog-link {
+      color: #4b5563;
+    }
+    .empty {
+      padding:60px 12px;
+      text-align:center;
+      color:#9ca3af;
+      font-size:14px;
+    }
+    .action-btn {
+      margin-left:16px;
+      border-radius:999px;
+      padding:8px 20px;
+      font-size:13px;
+      border:none;
+      cursor:pointer;
+      background:#ff3b59;
+      color:#fff;
+      flex-shrink:0;
+    }
+    .item-read-btn {
+      margin-left:16px;
+      border-radius:999px;
+      padding:8px 14px;
+      font-size:12px;
+      border:1px solid #e5e7eb;
+      background:#fff;
+      color:#374151;
+      cursor:pointer;
+      flex-shrink:0;
+    }
+    .item-read-btn:hover {
+      background:#f9fafb;
+    }
+    .mark-read-btn {
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      color: #374151;
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .mark-read-btn:hover {
+      background: #f9fafb;
+    }
+    .notif-dot {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 9px;
+      padding: 0 4px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .toolbar {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding: 12px 40px 0;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .toolbar-actions {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .filter-btn {
+      border:1px solid #e5e7eb;
+      background:#ffffff;
+      color:#374151;
+      font-size:13px;
+      padding:6px 12px;
+      border-radius:999px;
+      cursor:pointer;
+    }
+    .filter-btn.active {
+      background:#111827;
+      color:#fff;
+      border-color:#111827;
+    }
+    .pager {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:16px 0 8px;
+      gap:12px;
+    }
+    .pager-info {
+      color:#6b7280;
+      font-size:13px;
+    }
+    .pager-actions {
+      display:flex;
+      gap:8px;
+    }
+    .pager-btn {
+      border:1px solid #e5e7eb;
+      background:#fff;
+      color:#111827;
+      font-size:13px;
+      padding:6px 12px;
+      border-radius:999px;
+      cursor:pointer;
+    }
+    .pager-btn:disabled {
+      cursor:default;
+      opacity:.45;
+    }
+
+    @media (max-width: 1100px) {
+      .main-layout {
+        flex-direction: column;
+      }
+      .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        padding: 20px 24px 0;
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      .content-area {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .wrap,
+      .toolbar {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      .sidebar {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      .item {
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="navbar-brand" onclick="goHome()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+      </svg>
+      博客广场
+    </div>
+    <div class="navbar-search">
+      <span class="search-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="M20 20l-3.5-3.5"></path>
+        </svg>
+      </span>
+      <input id="notifSearch" type="text" placeholder="搜索探索更多内容" onkeydown="if(event.key==='Enter') doSearch()">
+    </div>
+    <div class="navbar-right" id="navRight">
+      <button class="btn-login" type="button" onclick="goHome()">返回首页</button>
+    </div>
+  </div>
+</nav>
+
+<div class="main-layout">
+  <aside class="sidebar">
+    <div class="nav-item" onclick="goHome()" data-prefetch-url="/">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      </span> 发现
+    </div>
+    <div class="nav-item" onclick="openPublishPage()" data-prefetch-url="/publish.html">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 9v6m-3-3h6"></path><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path></svg>
+      </span> 发布
+    </div>
+    <div class="nav-item active" onclick="goNotifications()" data-prefetch-url="/notifications.html">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+      </span> 通知
+    </div>
+    <div class="nav-item" onclick="openOwnProfilePage()" data-prefetch-profile="1">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      </span> 我
+    </div>
+  </aside>
+
+  <main class="content-area">
+<div class="page">
+  <div class="tabs-wrap">
+    <div class="tabs">
+      <div class="tab active" data-tab="comment">评论和@<span class="notif-dot" id="dot-comment" aria-hidden="true"></span></div>
+      <div class="tab" data-tab="like">赞和收藏<span class="notif-dot" id="dot-like" aria-hidden="true"></span></div>
+      <div class="tab" data-tab="follow">新增关注<span class="notif-dot" id="dot-follow" aria-hidden="true"></span></div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <div class="toolbar-actions">
+      <button class="filter-btn" id="toggleUnreadBtn" type="button">全部通知</button>
+      <button class="mark-read-btn" type="button" onclick="markAllRead()">一键已读</button>
+    </div>
+  </div>
+  <div class="wrap">
+  <div id="section-comment" class="section active"></div>
+  <div id="section-like" class="section"></div>
+  <div id="section-follow" class="section"></div>
+</div>
+</div>
+</main>
+</div>
+<script src="/site-navigation.js"></script>
+<script src="/avatar-render.js"></script>
+<script>
+  async function request(url, options = {}) {
+    try {
+      const res = await fetch(url, { credentials: 'include', headers: { 'Content-Type': 'application/json' }, ...options });
+      return await res.json();
+    } catch (e) {
+      return { code: -1, message: '网络请求失败' };
+    }
+  }
+
+  function formatTime(t) {
+    if (!t) return '';
+    // 统一时间解析：后端可能返回不带时区的字符串（如 2026-03-11 12:30:00）
+    // 浏览器会按“本地时间”解析，导致与数据库/服务端真实含义不一致。
+    // 这里的策略：
+    // 1) 若 t 是不带 Z / 时区偏移的字符串，则按 UTC 解析（补 Z）
+    // 2) 再固定用北京时间(Asia/Shanghai)格式化展示
+    let d;
+    if (typeof t === 'string') {
+      const s = t.trim();
+      const hasTz = /([zZ]|[+-]\d{2}:?\d{2})$/.test(s);
+      if (!hasTz && /^\d{4}-\d{2}-\d{2}/.test(s)) {
+        // 兼容 'YYYY-MM-DD HH:mm:ss' 与 'YYYY-MM-DDTHH:mm:ss'
+        const iso = s.includes('T') ? s : s.replace(' ', 'T');
+        d = new Date(iso + 'Z');
+      } else {
+        d = new Date(s);
+      }
+    } else {
+      d = new Date(t);
+    }
+    try {
+      const parts = new Intl.DateTimeFormat('zh-CN', {
+        timeZone: 'Asia/Shanghai',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).formatToParts(d);
+      const pick = (type) => parts.find(p => p.type === type)?.value || '';
+      return `${pick('month')}-${pick('day')} ${pick('hour')}:${pick('minute')}`;
+    } catch (e) {
+      // 兜底：如果不支持 Intl/timeZone，就直接按本地时间展示
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      return `${m}-${day} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+  }
+
+  function firstChar(name) {
+    if (!name) return '?';
+    return String(name).trim().charAt(0).toUpperCase() || '?';
+  }
+
+  function escHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function escAttr(value) {
+    return escHtml(value)
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  const TYPE_MAP = { comment: 1, like: 2, follow: 3 };
+  const TAB_LABEL = { comment: '评论和@', like: '赞和收藏', follow: '新增关注' };
+  const PAGE_SIZE = 10;
+  const isEmbeddedShell = window.SiteShellEmbed?.isEmbedded === true;
+  let viewerId = null;
+  let viewerInfo = null;
+  let currentTab = 'comment';
+  let onlyUnread = false;
+  let embedHeightRaf = 0;
+  const pageState = {
+    comment: { page: 1, total: 0, list: [] },
+    like: { page: 1, total: 0, list: [] },
+    follow: { page: 1, total: 0, list: [] }
+  };
+
+  const navRight = document.getElementById('navRight');
+
+
+  function reportEmbedHeight() {
+    if (!isEmbeddedShell) return;
+    const height = Math.max(
+      document.documentElement.scrollHeight || 0,
+      document.body.scrollHeight || 0,
+      document.documentElement.offsetHeight || 0,
+      document.body.offsetHeight || 0
+    );
+    window.parent.postMessage({ type: 'shell:height', view: 'notifications', height }, window.location.origin);
+  }
+
+  function scheduleEmbedHeightReport() {
+    if (!isEmbeddedShell) return;
+    if (embedHeightRaf) cancelAnimationFrame(embedHeightRaf);
+    embedHeightRaf = requestAnimationFrame(() => {
+      embedHeightRaf = requestAnimationFrame(reportEmbedHeight);
+    });
+  }
+
+  function navigateTopLevel(url) {
+    const shellRoute = /^(\/|\/profile\.html|\/notifications\.html)/.test(url);
+    if (isEmbeddedShell && shellRoute && window.parent?.SiteShell?.navigate) {
+      window.parent.SiteShell.navigate(url);
+      return;
+    }
+    if (window.SiteNavigation) {
+      SiteNavigation.navigate(url);
+      return;
+    }
+    window.location.href = url;
+  }
+
+  function buildOwnProfileUrl(userId = viewerId) {
+    return userId ? `/profile.html?userId=${encodeURIComponent(userId)}` : '/profile.html';
+  }
+
+  function goHome() {
+    navigateTopLevel('/');
+  }
+
+  function redirectToLogin() {
+    if (window.SiteNavigation?.requestLogin) {
+      SiteNavigation.requestLogin({
+        returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}`
+      });
+      return;
+    }
+    goHome();
+  }
+
+  function goNotifications() {
+    navigateTopLevel('/notifications.html');
+  }
+
+  async function hydrateViewer() {
+    const res = await request('/user/get/login');
+    if (res.code === 0 && res.data) {
+      viewerId = res.data.id;
+      viewerInfo = res.data;
+    } else {
+      viewerId = null;
+      viewerInfo = null;
+    }
+    renderViewerEntry();
+    warmRoutes();
+    scheduleEmbedHeightReport();
+  }
+
+  function warmRoutes() {
+    if (!window.SiteNavigation) return;
+    SiteNavigation.onIdle(() => {
+      SiteNavigation.warmRoutes(['/', '/publish.html', '/notifications.html']);
+      SiteNavigation.installPrefetchers([
+        {
+          selector: '[data-prefetch-url]',
+          getUrl: element => element.getAttribute('data-prefetch-url') || ''
+        },
+        {
+          selector: '[data-prefetch-profile]',
+          getUrl: () => buildOwnProfileUrl()
+        }
+      ]);
+      if (viewerId) {
+        SiteNavigation.warmRoutes([buildOwnProfileUrl(viewerId)]);
+      }
+    });
+  }
+
+  function renderViewerEntry() {
+    if (!navRight) return;
+    if (!viewerInfo) {
+      navRight.innerHTML = `<button class="btn-login" type="button" onclick="redirectToLogin()">登录</button>`;
+      return;
+    }
+    const name = viewerInfo.username || `用户${viewerInfo.id || ''}`;
+    const avatarHtml = window.SiteAvatar?.renderHtml
+      ? SiteAvatar.renderHtml('user-avatar', { avatarUrl: viewerInfo.avatarUrl, username: name, avatarText: name })
+      : `<div class="user-avatar">${escHtml((name.charAt(0) || 'U').toUpperCase())}</div>`;
+    navRight.innerHTML = `
+      <div class="user-badge" onclick="toggleDropdown(event)">
+        ${avatarHtml}
+        <span>${escHtml(name)}</span>
+        <div class="user-dropdown" id="userDropdown">
+          <a onclick="openOwnProfilePage(event)">个人主页</a>
+          <a onclick="logout(event)" style="color:#ef4444">退出登录</a>
+        </div>
+      </div>`;
+  }
+
+  function toggleDropdown(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('userDropdown');
+    if (!dropdown) return;
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+  }
+
+  document.addEventListener('click', () => {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown) dropdown.style.display = 'none';
+  });
+
+  function openPublishPage() {
+    if (!viewerId) {
+      redirectToLogin();
+      return;
+    }
+    navigateTopLevel('/publish.html');
+  }
+
+  function openOwnProfilePage(event) {
+    if (event) event.stopPropagation();
+    if (!viewerId) {
+      redirectToLogin();
+      return;
+    }
+    const nextUrl = buildOwnProfileUrl(viewerId);
+    navigateTopLevel(nextUrl);
+  }
+
+  async function logout(event) {
+    if (event) event.stopPropagation();
+    await request('/user/logout', { method: 'POST' });
+    navigateTopLevel('/');
+  }
+
+  function getActionText(type) {
+    if (type === 1) return '评论了你的文章';
+    if (type === 2) return '赞了你的文章';
+    return '开始关注你了';
+  }
+
+  function renderDesc(item) {
+    const actionText = getActionText(item.type);
+    if (item.type === 3) {
+      return actionText;
+    }
+    const blogTitle = item.blogTitle ? `《${escHtml(item.blogTitle)}》` : '相关博客';
+    return `${actionText} <span class="blog-link js-open-blog" data-blog-id="${escAttr(item.blogId)}">${blogTitle}</span>`;
+  }
+
+  function renderPager(tab) {
+    const state = pageState[tab];
+    if (!state || state.total <= PAGE_SIZE) return '';
+    const totalPages = Math.max(1, Math.ceil(state.total / PAGE_SIZE));
+    return `
+      <div class="pager">
+        <div class="pager-info">第 ${state.page} / ${totalPages} 页，共 ${state.total} 条</div>
+        <div class="pager-actions">
+          <button class="pager-btn" type="button" data-page-action="prev" ${state.page <= 1 ? 'disabled' : ''}>上一页</button>
+          <button class="pager-btn" type="button" data-page-action="next" ${state.page >= totalPages ? 'disabled' : ''}>下一页</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderList(tab, listOverride = null) {
+    const box = document.getElementById('section-' + tab);
+    if (!box) return;
+    const state = pageState[tab];
+    const list = Array.isArray(listOverride) ? listOverride : state.list;
+    if (!list.length) {
+      const emptyText = onlyUnread ? '当前分类暂无未读通知' : `暂无${TAB_LABEL[tab]}`;
+      box.innerHTML = `<div class="empty">${emptyText}</div>`;
+      return;
+    }
+    box.innerHTML = list.map(item => `
+      <div class="item ${item.isRead === 0 ? 'unread' : ''}">
+        ${window.SiteAvatar?.renderHtml
+          ? SiteAvatar.renderHtml('avatar', { fromUserAvatarUrl: item.fromUserAvatarUrl, fromUsername: item.fromUsername, avatarText: firstChar(item.fromUsername || item.fromUserId) })
+          : `<div class="avatar">${firstChar(item.fromUsername || item.fromUserId)}</div>`}
+        <div class="content">
+          <div class="nickname"><span class="u-link js-open-profile" data-user-id="${escAttr(item.fromUserId)}">${escHtml(item.fromUsername || ('用户' + item.fromUserId))}</span></div>
+          <div class="desc">${renderDesc(item)}</div>
+          <div class="meta">${formatTime(item.createTime)} · ${item.isRead === 0 ? '未读' : '已读'}</div>
+        </div>
+        ${item.isRead === 0 ? `<button class="item-read-btn js-mark-read" type="button" data-id="${escAttr(item.id)}">标为已读</button>` : ''}
+      </div>
+    `).join('') + renderPager(tab);
+    scheduleEmbedHeightReport();
+  }
+
+  async function loadStats() {
+    const data = await request('/notification/stats');
+    if (data.code !== 0 || !data.data) return;
+    updateUnreadDots(data.data);
+  }
+
+  function updateUnreadDots(stats) {
+    const mapping = {
+      comment: Number(stats.commentUnread || 0),
+      like: Number(stats.likeUnread || 0),
+      follow: Number(stats.followUnread || 0)
+    };
+    Object.entries(mapping).forEach(([tab, count]) => {
+      const el = document.getElementById('dot-' + tab);
+      if (!el) return;
+      if (count > 0) {
+        el.style.display = 'inline-flex';
+        el.textContent = count > 99 ? '99+' : String(count);
+      } else {
+        el.style.display = 'none';
+        el.textContent = '';
+      }
+    });
+  }
+
+  async function loadTab(tab, page = 1) {
+    currentTab = tab;
+    pageState[tab].page = page;
+    const box = document.getElementById('section-' + tab);
+    if (box) box.innerHTML = '<div class="empty">加载中…</div>';
+    const type = TYPE_MAP[tab];
+    const data = await request(`/notification/page?type=${type}&page=${page}&size=${PAGE_SIZE}&onlyUnread=${onlyUnread}`);
+    if (data.code !== 0 || !data.data) {
+      if (box) box.innerHTML = `<div class="empty">${data.message || '加载失败'}</div>`;
+      return;
+    }
+    pageState[tab].page = Number(data.data.page || page);
+    pageState[tab].total = Number(data.data.total || 0);
+    pageState[tab].list = data.data.list || [];
+    renderList(tab);
+    scheduleEmbedHeightReport();
+  }
+
+  function openProfile(userId) {
+    const nextUrl = `/profile.html?userId=${encodeURIComponent(userId)}`;
+    navigateTopLevel(nextUrl);
+  }
+
+  function openBlog(blogId) {
+    if (!blogId && blogId !== 0) return;
+    const nextUrl = `/blog.html?blogId=${encodeURIComponent(blogId)}`;
+    navigateTopLevel(nextUrl);
+  }
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const name = tab.getAttribute('data-tab');
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById('section-' + name).classList.add('active');
+      loadTab(name, 1);
+    });
+  });
+
+  document.getElementById('toggleUnreadBtn').addEventListener('click', async () => {
+    onlyUnread = !onlyUnread;
+    const btn = document.getElementById('toggleUnreadBtn');
+    btn.classList.toggle('active', onlyUnread);
+    btn.textContent = onlyUnread ? '仅看未读' : '全部通知';
+    await loadTab(currentTab, 1);
+  });
+
+  document.addEventListener('click', (event) => {
+    const profileTrigger = event.target.closest('.js-open-profile');
+    if (profileTrigger) {
+      event.stopPropagation();
+      openProfile(profileTrigger.dataset.userId);
+      return;
+    }
+
+    const blogTrigger = event.target.closest('.js-open-blog');
+    if (blogTrigger) {
+      event.stopPropagation();
+      openBlog(blogTrigger.dataset.blogId);
+      return;
+    }
+
+    const readTrigger = event.target.closest('.js-mark-read');
+    if (readTrigger) {
+      markOneRead(readTrigger.dataset.id);
+      return;
+    }
+
+    const pagerTrigger = event.target.closest('.pager-btn[data-page-action]');
+    if (pagerTrigger) {
+      const current = pageState[currentTab]?.page || 1;
+      const nextPage = pagerTrigger.dataset.pageAction === 'prev' ? current - 1 : current + 1;
+      loadTab(currentTab, nextPage);
+    }
+  });
+
+  async function doSearch() {
+    const kw = (document.getElementById('notifSearch')?.value || '').trim();
+    if (window.SiteNavigation?.navigateDiscovery) {
+      SiteNavigation.navigateDiscovery(kw);
+      return;
+    }
+    window.location.href = kw ? `/?q=${encodeURIComponent(kw)}` : '/';
+  }
+
+  async function markOneRead(notificationId) {
+    if (!notificationId) return;
+    const res = await request(`/notification/read?notificationId=${encodeURIComponent(notificationId)}`, { method: 'POST' });
+    if (res.code === 0 && res.data) {
+      await loadStats();
+      await loadTab(currentTab, pageState[currentTab]?.page || 1);
+    }
+  }
+
+  async function markAllRead() {
+    const type = TYPE_MAP[currentTab];
+    const res = await request(`/notification/read/all?type=${type}`, { method: 'POST' });
+    if (res.code === 0) {
+      await loadStats();
+      await loadTab(currentTab, 1);
+    }
+  }
+
+  hydrateViewer();
+  loadStats();
+  loadTab('comment', 1);
+  window.addEventListener('resize', scheduleEmbedHeightReport);
+  setInterval(loadStats, 20000);
+</script>
+</body>
+</html>
+

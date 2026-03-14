@@ -1,0 +1,61 @@
+spring:
+  application.name: thumb-backend
+  session:
+    store-type: redis
+    timeout: 1800s
+  datasource:
+      url: jdbc:mysql://117.72.105.142:4000/dianzan?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true
+      username: root
+      password:
+  data: # Redis ??
+      redis:
+        database: 0
+        host: 117.72.105.142
+#        password: root
+        timeout: 3s
+        connect-timeout: 2s
+        port: 6379
+        jedis:
+          pool:
+            max-active: 32
+            max-idle: 16
+            min-idle: 4
+            max-wait: 2s
+  pulsar:
+    client:
+          service-url: pulsar://117.72.105.142:6650   # ???????????
+  elasticsearch:
+    uris: http://117.72.105.142:9200
+    connection-timeout: 5s
+    socket-timeout: 3s
+  jackson:
+    time-zone: Asia/Shanghai
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+# mybatis-plus
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+aliyun:
+  oss:
+    endpoint: oss-cn-shenzhen.aliyuncs.com
+    region: cn-shenzhen
+    bucket-name: bokeguangchang
+    access-key-id: test-secret-123
+    access-key-secret: test-secret-456
+    public-base-url: https://bokeguangchang.oss-cn-shenzhen.aliyuncs.com
+    sign-expire-seconds: 600
+    avatar-dir: avatars
+    blog-cover-dir: blog-covers
+    blog-image-dir: blog-images
+    max-file-size-bytes: 5242880
+    allowed-content-types:
+      - image/jpeg
+      - image/png
+      - image/webp
+      - image/gif

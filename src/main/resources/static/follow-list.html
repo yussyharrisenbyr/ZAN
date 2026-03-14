@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>关注关系</title>
+  <link rel="stylesheet" href="/common-navbar.css">
+  <script src="/shell-embed-guard.js" data-shell-view="followList"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f6f7fb;
+      color: #1f2937;
+      min-height: 100vh;
+    }
+    html.embedded-shell body,
+    body.embedded-shell {
+      background: transparent;
+      overflow-x: hidden;
+    }
+    html.embedded-shell .navbar,
+    body.embedded-shell .navbar {
+      display: none;
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: calc(var(--navbar-height) + 32px) 24px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    html.embedded-shell main,
+    body.embedded-shell main {
+      max-width: min(100%, 960px);
+      padding: 16px 16px 32px;
+    }
+    .hero {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid rgba(30,128,255,.1);
+      border-radius: 28px;
+      padding: 28px 32px;
+      box-shadow: 0 16px 36px rgba(15,23,42,.06);
+    }
+    .hero-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .hero-copy {
+      flex: 1 1 320px;
+      min-width: 0;
+    }
+    .hero-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .hero-subtitle {
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .hero-stats {
+      margin-top: 18px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #eef5ff;
+      color: #2563eb;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .hero-back-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 0 18px;
+      border: 1px solid #dbe2ea;
+      border-radius: 999px;
+      background: rgba(255,255,255,.92);
+      color: #111827;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .18s ease;
+      white-space: nowrap;
+      box-shadow: 0 10px 24px rgba(15,23,42,.05);
+    }
+    .hero-back-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(30,128,255,.28);
+      box-shadow: 0 14px 28px rgba(30,128,255,.12);
+    }
+    .panel {
+      background: #fff;
+      border-radius: 24px;
+      border: 1px solid rgba(15,23,42,.06);
+      box-shadow: 0 14px 30px rgba(15,23,42,.05);
+      overflow: hidden;
+    }
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      padding: 18px 20px 8px;
+      flex-wrap: wrap;
+      background: #fff;
+    }
+    .tab-btn {
+      border: none;
+      background: #f3f4f6;
+      color: #4b5563;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all .18s ease;
+    }
+    .tab-btn.active {
+      background: #111827;
+      color: #fff;
+    }
+    .toolbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 12px 20px 18px;
+      border-bottom: 1px solid #eef2f7;
+    }
+    .toolbar-note {
+      color: #6b7280;
+      font-size: 13px;
+      line-height: 1.7;
+      flex: 1 1 220px;
+    }
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      flex: 1 1 420px;
+    }
+    .search-input {
+      min-width: 240px;
+      height: 40px;
+      padding: 0 14px;
+      border: 1px solid #dbe2ea;
+      border-radius: 999px;
+      background: #fff;
+      color: #111827;
+      outline: none;
+      font-size: 13px;
+    }
+    .search-input:focus {
+      border-color: rgba(30,128,255,.35);
+      box-shadow: 0 0 0 4px rgba(30,128,255,.08);
+    }
+    .filter-chip {
+      border: 1px solid #dbe2ea;
+      background: #fff;
+      color: #4b5563;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .18s ease;
+    }
+    .filter-chip.active {
+      background: #111827;
+      color: #fff;
+      border-color: #111827;
+    }
+    .result-count {
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .size-select {
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid #dbe2ea;
+      border-radius: 999px;
+      background: #fff;
+      color: #111827;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+    .list-wrap {
+      padding: 12px 20px 20px;
+    }
+    .state-box {
+      padding: 48px 20px;
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+    }
+    .user-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .pager {
+      margin-top: 18px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .pager-meta {
+      color: #6b7280;
+      font-size: 13px;
+    }
+    .pager-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .user-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 16px;
+      border-radius: 18px;
+      background: #fbfdff;
+      border: 1px solid rgba(30,128,255,.08);
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .user-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px rgba(30,128,255,.08);
+    }
+    .user-main {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+      flex: 1;
+      cursor: pointer;
+    }
+    .avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: #1e80ff;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .user-info {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .user-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .user-account {
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .user-meta {
+      font-size: 12px;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .mutual-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(236, 72, 153, 0.1);
+      color: #db2777;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .action-btn {
+      border: 1px solid rgba(30,128,255,.18);
+      background: #1e80ff;
+      color: #fff;
+      border-radius: 999px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .18s ease;
+      white-space: nowrap;
+    }
+    .action-btn.secondary {
+      background: #fff;
+      color: #1e80ff;
+    }
+    .action-btn.ghost {
+      background: #f3f4f6;
+      color: #6b7280;
+      border-color: transparent;
+      cursor: default;
+    }
+    .action-btn:disabled {
+      opacity: .7;
+      cursor: not-allowed;
+    }
+    .toast {
+      position: fixed;
+      top: 86px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-12px);
+      background: rgba(17,24,39,.9);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all .2s ease;
+      z-index: 120;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    html.embedded-shell .toast,
+    body.embedded-shell .toast {
+      top: 20px;
+    }
+    @media (max-width: 768px) {
+      main { padding: calc(var(--navbar-height) + 24px) 14px 32px; }
+      html.embedded-shell main,
+      body.embedded-shell main { padding: 14px 14px 28px; }
+      .hero { padding: 22px 18px; }
+      .hero-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .hero-back-btn { width: 100%; }
+      .hero-title { font-size: 22px; }
+      .tab-bar { padding: 16px 16px 8px; }
+      .toolbar { align-items: flex-start; }
+      .toolbar-actions { width: 100%; }
+      .search-input { min-width: 0; width: 100%; }
+      .user-card { flex-direction: column; align-items: stretch; }
+      .user-main { width: 100%; }
+      .action-btn { width: 100%; }
+      .pager { align-items: stretch; }
+      .pager-actions { width: 100%; }
+      .pager-actions .filter-chip { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="navbar-brand" onclick="goHome()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+      </svg>
+      博客广场
+    </div>
+    <div class="navbar-search">
+      <span class="search-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="M20 20l-3.5-3.5"></path>
+        </svg>
+      </span>
+      <input aria-label="搜索内容" type="text" placeholder="搜索探索更多内容" onkeydown="if(event.key==='Enter') SiteNavigation.navigateDiscovery(this.value)">
+    </div>
+    <div class="navbar-right">
+      <button id="navbarBackProfileBtn" class="nav-link" type="button" onclick="goBackProfile()">返回主页</button>
+    </div>
+  </div>
+</nav>
+<main>
+  <section class="hero">
+    <div class="hero-header">
+      <div class="hero-copy">
+        <div class="hero-title" id="heroTitle">关注关系</div>
+        <div class="hero-subtitle" id="heroSubtitle">正在加载用户关系数据...</div>
+      </div>
+      <button id="heroBackProfileBtn" class="hero-back-btn" type="button" onclick="goBackProfile()" aria-label="返回对应主页">← 返回主页</button>
+    </div>
+    <div class="hero-stats">
+      <span class="pill" id="heroFollowCount">关注 0</span>
+      <span class="pill" id="heroFansCount">粉丝 0</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabFollowing" type="button" onclick="switchType('following')">关注</button>
+      <button class="tab-btn" id="tabFans" type="button" onclick="switchType('fans')">粉丝</button>
+    </div>
+    <div class="toolbar">
+      <div class="toolbar-note" id="toolbarNote">公开可查看，登录后可在列表中直接关注/取关。</div>
+      <div class="toolbar-actions">
+        <input id="searchInput" class="search-input" aria-label="搜索用户" type="text" placeholder="搜索昵称或账号" oninput="scheduleKeyword(this.value)">
+        <button id="mutualOnlyBtn" class="filter-chip" type="button" onclick="toggleMutualOnly()">仅看互关</button>
+        <select id="pageSizeSelect" class="size-select" aria-label="每页条数" onchange="setPageSize(this.value)">
+          <option value="10">每页 10 条</option>
+          <option value="20">每页 20 条</option>
+          <option value="50">每页 50 条</option>
+        </select>
+        <span class="result-count" id="resultCount">0 位用户</span>
+        <button class="nav-link" type="button" onclick="reloadList()">刷新列表</button>
+      </div>
+    </div>
+    <div class="list-wrap">
+      <div class="state-box" id="stateBox">加载中，请稍候...</div>
+      <div class="user-list" id="userList" style="display:none;"></div>
+      <div class="pager" id="pager">
+        <div class="pager-meta" id="pagerMeta">第 1 / 1 页</div>
+        <div class="pager-actions">
+          <button id="prevPageBtn" class="filter-chip" type="button" onclick="changePage(-1)">上一页</button>
+          <button id="nextPageBtn" class="filter-chip" type="button" onclick="changePage(1)">下一页</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="toast" class="toast"></div>
+<script src="/site-navigation.js"></script>
+<script src="/avatar-render.js"></script>
+<script>
+  function goHome() {
+    navigateTopLevel('/');
+  }
+
+  function redirectToLogin() {
+    if (window.SiteNavigation?.requestLogin) {
+      SiteNavigation.requestLogin({
+        returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}`
+      });
+      return;
+    }
+    goHome();
+  }
+
+  if (window.SiteNavigation) {
+    SiteNavigation.onIdle(() => {
+      SiteNavigation.warmRoutes(['/']);
+    });
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const isEmbeddedShell = window.SiteShellEmbed?.isEmbedded === true;
+  const requestedUserId = params.get('userId')?.trim();
+  let currentType = normalizeType(params.get('type'));
+  let viewerId = null;
+  let currentProfile = null;
+  let currentList = [];
+  let requestInFlight = false;
+  let requestToken = 0;
+  let searchTimer = null;
+  let embedHeightRaf = 0;
+  let keyword = params.get('q')?.trim() || '';
+  let mutualOnly = params.get('mutual') === '1';
+  let currentPage = normalizePositiveInt(params.get('page'), 1);
+  let pageSize = normalizePageSize(params.get('size'));
+  let totalCount = 0;
+
+  const heroTitle = document.getElementById('heroTitle');
+  const heroSubtitle = document.getElementById('heroSubtitle');
+  const heroFollowCount = document.getElementById('heroFollowCount');
+  const heroFansCount = document.getElementById('heroFansCount');
+  const stateBox = document.getElementById('stateBox');
+  const userListEl = document.getElementById('userList');
+  const toastEl = document.getElementById('toast');
+  const searchInput = document.getElementById('searchInput');
+  const mutualOnlyBtn = document.getElementById('mutualOnlyBtn');
+  const pageSizeSelect = document.getElementById('pageSizeSelect');
+  const resultCount = document.getElementById('resultCount');
+  const pagerEl = document.getElementById('pager');
+  const pagerMeta = document.getElementById('pagerMeta');
+  const prevPageBtn = document.getElementById('prevPageBtn');
+  const nextPageBtn = document.getElementById('nextPageBtn');
+  const navbarBackProfileBtn = document.getElementById('navbarBackProfileBtn');
+  const heroBackProfileBtn = document.getElementById('heroBackProfileBtn');
+
+
+  bootstrap();
+
+  function reportEmbedHeight() {
+    if (!isEmbeddedShell) return;
+    const height = Math.max(
+      document.documentElement.scrollHeight || 0,
+      document.body.scrollHeight || 0,
+      document.documentElement.offsetHeight || 0,
+      document.body.offsetHeight || 0
+    );
+    window.parent.postMessage({ type: 'shell:height', view: 'followList', height }, window.location.origin);
+  }
+
+  function scheduleEmbedHeightReport() {
+    if (!isEmbeddedShell) return;
+    if (embedHeightRaf) cancelAnimationFrame(embedHeightRaf);
+    embedHeightRaf = requestAnimationFrame(() => {
+      embedHeightRaf = requestAnimationFrame(reportEmbedHeight);
+    });
+  }
+
+  function navigateTopLevel(url) {
+    const shellRoute = /^(\/|\/profile\.html|\/notifications\.html|\/follow-list\.html)/.test(url);
+    if (isEmbeddedShell && shellRoute && window.parent?.SiteShell?.navigate) {
+      window.parent.SiteShell.navigate(url);
+      return;
+    }
+    if (window.SiteNavigation) {
+      SiteNavigation.navigate(url);
+      return;
+    }
+    window.location.href = url;
+  }
+
+  async function bootstrap() {
+    searchInput.value = keyword;
+    pageSizeSelect.value = String(pageSize);
+    syncMutualToggle();
+    syncBackProfileButtons();
+    await hydrateViewer();
+    syncBackProfileButtons();
+    const targetUserId = resolveTargetUserId();
+    if (!targetUserId) {
+      renderState('请先登录，或从某个用户主页进入关注列表。');
+      heroSubtitle.textContent = '当前没有可查询的目标用户。';
+      syncBackProfileButtons();
+      scheduleEmbedHeightReport();
+      return;
+    }
+    await loadProfile(targetUserId);
+    await loadList();
+    scheduleEmbedHeightReport();
+  }
+
+  function resolveTargetUserId() {
+    return requestedUserId || (viewerId ? String(viewerId) : '');
+  }
+
+  async function hydrateViewer() {
+    const res = await request('/user/get/login');
+    if (res.code === 0 && res.data) {
+      viewerId = res.data.id;
+    }
+  }
+
+  async function loadProfile(targetUserId) {
+    const res = await request(`/user/profile?userId=${encodeURIComponent(targetUserId)}`);
+    if (res.code !== 0 || !res.data) {
+      heroTitle.textContent = '关注关系';
+      heroSubtitle.textContent = res.message || '无法加载用户信息';
+      syncBackProfileButtons();
+      return;
+    }
+    currentProfile = res.data;
+    heroTitle.textContent = `${res.data.username || '该用户'}的${currentType === 'fans' ? '粉丝' : '关注'}`;
+    heroSubtitle.textContent = currentType === 'fans'
+      ? '看看有哪些用户正在关注 TA。'
+      : '看看 TA 正在关注哪些用户。';
+    heroFollowCount.textContent = `关注 ${formatNumber(res.data.followCount)}`;
+    heroFansCount.textContent = `粉丝 ${formatNumber(res.data.fansCount)}`;
+    syncBackProfileButtons();
+    scheduleEmbedHeightReport();
+  }
+
+  async function loadList() {
+    const targetUserId = resolveTargetUserId();
+    if (!targetUserId) return;
+    const token = ++requestToken;
+    requestInFlight = true;
+    syncTabs();
+    syncMutualToggle();
+    syncPager();
+    renderState(`正在加载${currentType === 'fans' ? '粉丝' : '关注'}列表...`);
+    const endpoint = currentType === 'fans' ? '/follow/fans' : '/follow/following';
+    const query = new URLSearchParams();
+    query.set('userId', targetUserId);
+    query.set('page', String(currentPage));
+    query.set('size', String(pageSize));
+    if (keyword) query.set('keyword', keyword);
+    if (mutualOnly) query.set('mutualOnly', 'true');
+    const res = await request(`${endpoint}?${query.toString()}`);
+    if (token !== requestToken) {
+      return;
+    }
+    requestInFlight = false;
+    if (res.code !== 0 || !res.data || !Array.isArray(res.data.list)) {
+      totalCount = 0;
+      currentList = [];
+      syncPager();
+      renderState(res.message || '加载失败，请稍后重试');
+      return;
+    }
+    currentList = res.data.list.slice();
+    totalCount = Number(res.data.total || 0);
+    currentPage = normalizePositiveInt(res.data.page, currentPage);
+    pageSize = normalizePageSize(res.data.size);
+    pageSizeSelect.value = String(pageSize);
+    if (totalCount > 0) {
+      const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+      if (currentPage > totalPages) {
+        currentPage = totalPages;
+        updateUrlFilters();
+        requestInFlight = false;
+        loadList();
+        return;
+      }
+    }
+    updateUrlFilters();
+    renderList();
+    scheduleEmbedHeightReport();
+  }
+
+  function renderList() {
+    resultCount.textContent = `共 ${formatNumber(totalCount)} 位用户`;
+    if (!totalCount) {
+      syncPager();
+      renderState(keyword || mutualOnly ? '没有找到符合条件的用户。' : (currentType === 'fans' ? '暂时还没有粉丝。' : '暂时还没有关注任何人。'));
+      return;
+    }
+    if (!currentList.length) {
+      syncPager();
+      renderState('当前页暂无数据，正在为你调整分页...');
+      return;
+    }
+    stateBox.style.display = 'none';
+    userListEl.style.display = 'flex';
+    userListEl.innerHTML = currentList.map(renderUserCard).join('');
+    syncPager();
+    scheduleEmbedHeightReport();
+  }
+
+  function renderUserCard(user) {
+    const userId = encodeURIComponent(user.userId);
+    const avatarText = (user.avatarText || user.username || 'U').slice(0, 1).toUpperCase();
+    const avatarHtml = window.SiteAvatar?.renderHtml
+      ? SiteAvatar.renderHtml('avatar', { avatarUrl: user.avatarUrl, username: user.username, avatarText })
+      : `<div class="avatar">${escapeHtml(avatarText)}</div>`;
+    const username = escapeHtml(user.username || '未命名用户');
+    const userAccount = escapeHtml(user.userAccount || '--');
+    const metaText = user.self ? '这是你自己' : (user.following ? '你已关注 TA' : '点击可查看 TA 的主页');
+    const mutualBadge = user.mutualFollow ? '<span class="mutual-badge">互相关注</span>' : '';
+    return `
+      <article class="user-card">
+        <div class="user-main" onclick="openProfile('${userId}')">
+          ${avatarHtml}
+          <div class="user-info">
+            <div class="user-name">${username}</div>
+            <div class="user-account">账号：${userAccount}</div>
+            <div class="user-meta">${escapeHtml(metaText)} ${mutualBadge}</div>
+          </div>
+        </div>
+        ${renderActionButton(user)}
+      </article>`;
+  }
+
+  function renderActionButton(user) {
+    if (user.self) {
+      return '<button class="action-btn ghost" type="button" disabled>自己</button>';
+    }
+    if (!viewerId) {
+      return `<button class="action-btn secondary" type="button" onclick="promptLogin(event)">登录后关注</button>`;
+    }
+    const isFollowing = !!user.following;
+    const cls = isFollowing ? 'action-btn secondary' : 'action-btn';
+    const text = isFollowing ? '已关注' : '关注';
+    return `<button class="${cls}" type="button" onclick="toggleFollow(event, '${encodeURIComponent(user.userId)}')">${text}</button>`;
+  }
+
+  async function toggleFollow(event, userId) {
+    event.stopPropagation();
+    if (!viewerId) {
+      redirectToLogin();
+      return;
+    }
+    const rawId = decodeURIComponent(userId);
+    const target = currentList.find(item => String(item.userId) === String(rawId));
+    if (!target) return;
+    const nextFollowing = !target.following;
+    const url = nextFollowing ? `/follow/do?userId=${encodeURIComponent(rawId)}` : `/follow/undo?userId=${encodeURIComponent(rawId)}`;
+    const res = await request(url, { method: 'POST' });
+    if (isUnauthorized(res)) {
+      redirectToLogin();
+      return;
+    }
+    if (res.code !== 0 || !res.data) {
+      showToast(res.message || '操作失败，请稍后重试');
+      return;
+    }
+    target.following = !!res.data.following;
+    target.mutualFollow = target.following && !!target.followingViewer;
+    if (currentProfile && viewerId && String(currentProfile.userId) === String(viewerId)) {
+      currentProfile.followCount = Number(res.data.followCount ?? currentProfile.followCount ?? 0);
+      heroFollowCount.textContent = `关注 ${formatNumber(currentProfile.followCount)}`;
+    }
+    if (currentProfile && String(currentProfile.userId) === String(rawId)) {
+      currentProfile.fansCount = Number(res.data.fansCount ?? currentProfile.fansCount ?? 0);
+      heroFansCount.textContent = `粉丝 ${formatNumber(currentProfile.fansCount)}`;
+    }
+    await loadList();
+  }
+
+  function promptLogin(event) {
+    event.stopPropagation();
+    redirectToLogin();
+  }
+
+  function switchType(type) {
+    const nextType = normalizeType(type);
+    if (nextType === currentType) return;
+    currentType = nextType;
+    currentPage = 1;
+    const url = new URL(window.location.href);
+    url.searchParams.set('type', currentType);
+    updateFilterQuery(url);
+    history.replaceState({}, '', url.toString());
+    if (currentProfile) {
+      heroTitle.textContent = `${currentProfile.username || '该用户'}的${currentType === 'fans' ? '粉丝' : '关注'}`;
+      heroSubtitle.textContent = currentType === 'fans'
+        ? '看看有哪些用户正在关注 TA。'
+        : '看看 TA 正在关注哪些用户。';
+    }
+    loadList();
+  }
+
+  function syncTabs() {
+    document.getElementById('tabFollowing').classList.toggle('active', currentType === 'following');
+    document.getElementById('tabFans').classList.toggle('active', currentType === 'fans');
+  }
+
+  function syncMutualToggle() {
+    mutualOnlyBtn.classList.toggle('active', mutualOnly);
+    mutualOnlyBtn.disabled = !viewerId;
+    mutualOnlyBtn.title = viewerId ? '仅查看与你互相关注的用户' : '登录后可使用互关筛选';
+  }
+
+  function scheduleKeyword(value) {
+    keyword = String(value || '').trim();
+    currentPage = 1;
+    updateUrlFilters();
+    if (searchTimer) {
+      clearTimeout(searchTimer);
+    }
+    searchTimer = setTimeout(() => {
+      loadList();
+    }, 250);
+  }
+
+  function toggleMutualOnly() {
+    if (!viewerId) {
+      redirectToLogin();
+      return;
+    }
+    mutualOnly = !mutualOnly;
+    currentPage = 1;
+    syncMutualToggle();
+    updateUrlFilters();
+    loadList();
+  }
+
+  function setPageSize(value) {
+    const nextSize = normalizePageSize(value);
+    if (nextSize === pageSize) return;
+    pageSize = nextSize;
+    currentPage = 1;
+    updateUrlFilters();
+    loadList();
+  }
+
+  function changePage(delta) {
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    const nextPage = currentPage + delta;
+    if (requestInFlight || nextPage < 1 || nextPage > totalPages) {
+      return;
+    }
+    currentPage = nextPage;
+    updateUrlFilters();
+    loadList();
+  }
+
+  function updateUrlFilters() {
+    const url = new URL(window.location.href);
+    updateFilterQuery(url);
+    history.replaceState({}, '', url.toString());
+  }
+
+  function updateFilterQuery(url) {
+    if (keyword) url.searchParams.set('q', keyword);
+    else url.searchParams.delete('q');
+    if (mutualOnly) url.searchParams.set('mutual', '1');
+    else url.searchParams.delete('mutual');
+    if (currentPage > 1) url.searchParams.set('page', String(currentPage));
+    else url.searchParams.delete('page');
+    if (pageSize !== 10) url.searchParams.set('size', String(pageSize));
+    else url.searchParams.delete('size');
+  }
+
+  function reloadList() {
+    loadList();
+  }
+
+  function goBackProfile() {
+    const targetUserId = resolveTargetUserId();
+    if (targetUserId) {
+      const nextUrl = `/profile.html?userId=${encodeURIComponent(targetUserId)}`;
+      navigateTopLevel(nextUrl);
+      return;
+    }
+    navigateTopLevel('/profile.html');
+  }
+
+  function getBackProfileLabel() {
+    const targetUserId = resolveTargetUserId();
+    if (!targetUserId) {
+      return '返回我的主页';
+    }
+    if (currentProfile?.self || (viewerId && String(targetUserId) === String(viewerId))) {
+      return '返回我的主页';
+    }
+    const username = (currentProfile?.username || '').trim();
+    return username ? `返回 ${username} 的主页` : '返回 TA 的主页';
+  }
+
+  function syncBackProfileButtons() {
+    const label = getBackProfileLabel();
+    [navbarBackProfileBtn, heroBackProfileBtn].forEach(button => {
+      if (!button) return;
+      button.textContent = label;
+      button.setAttribute('aria-label', label);
+    });
+  }
+
+  function openProfile(userId) {
+    const nextUrl = `/profile.html?userId=${userId}`;
+    if (isEmbeddedShell) {
+      navigateTopLevel(nextUrl);
+      return;
+    }
+    window.open(nextUrl, '_blank');
+  }
+
+  function renderState(text) {
+    userListEl.style.display = 'none';
+    userListEl.innerHTML = '';
+    pagerEl.style.display = 'none';
+    stateBox.style.display = 'block';
+    stateBox.textContent = text;
+    scheduleEmbedHeightReport();
+  }
+
+  function syncPager() {
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    pagerMeta.textContent = `第 ${Math.min(currentPage, totalPages)} / ${totalPages} 页 · 共 ${formatNumber(totalCount)} 位用户`;
+    prevPageBtn.disabled = requestInFlight || currentPage <= 1 || totalCount <= 0;
+    nextPageBtn.disabled = requestInFlight || currentPage >= totalPages || totalCount <= 0;
+    pagerEl.style.display = totalCount > 0 ? 'flex' : 'none';
+    scheduleEmbedHeightReport();
+  }
+
+  function normalizeType(type) {
+    return type === 'fans' ? 'fans' : 'following';
+  }
+
+  function normalizePositiveInt(value, fallback) {
+    const num = Number.parseInt(value, 10);
+    return Number.isFinite(num) && num > 0 ? num : fallback;
+  }
+
+  function normalizePageSize(value) {
+    const num = normalizePositiveInt(value, 10);
+    return Math.min(num, 50);
+  }
+
+  async function request(url, options = {}) {
+    try {
+      const response = await fetch(url, {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        ...options
+      });
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        data = { code: -1, message: '响应解析失败' };
+      }
+      return { httpStatus: response.status, ...data };
+    } catch (e) {
+      return { httpStatus: 0, code: -1, message: '网络异常，请稍后重试' };
+    }
+  }
+
+  function isUnauthorized(res) {
+    return !!res && (res.httpStatus === 401 || res.code === 401 || res.code === 40100);
+  }
+
+  function showToast(message) {
+    toastEl.textContent = message;
+    toastEl.classList.add('show');
+    setTimeout(() => toastEl.classList.remove('show'), 2200);
+  }
+
+  function formatNumber(num) {
+    const n = Number(num || 0);
+    if (n >= 10000) return (n / 10000).toFixed(1).replace(/\.0$/, '') + 'w';
+    return n.toLocaleString('zh-CN');
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  window.addEventListener('resize', scheduleEmbedHeightReport);
+</script>
+</body>
+</html>
+

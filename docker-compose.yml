@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  es-server:
+    image: elasticsearch:7.17.10
+    container_name: es-server
+    environment:
+      - discovery.type=single-node # 单节点运行必需
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # 限制内存，防止占用过高
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    restart: unless-stopped
+
+  kibana-server:
+    image: kibana:7.17.10
+    container_name: kibana-server
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es-server:9200 # 连接到 ES 容器
+    ports:
+      - "5601:5601"
+    depends_on:
+      - es-server
+    restart: unless-stopped
+
+  tidb-server:
+    image: pingcap/tidb:v6.5.0
+    container_name: tidb-server
+    ports:
+      - "4000:4000"
+      - "10080:10080"
+    restart: unless-stopped
+
+  pulsar-server:
+    image: apachepulsar/pulsar:latest
+    container_name: pulsar-server
+    command: bin/pulsar standalone # Pulsar 单机模式启动命令
+    ports:
+      - "6650:6650"
+      - "8080:8080"
+    restart: unless-stopped
+
+  redis-server:
+    image: redis:latest
+    container_name: redis-server
+    ports:
+      - "6379:6379"
+    restart: unless-stopped

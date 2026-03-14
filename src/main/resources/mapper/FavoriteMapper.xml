@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.dianzan.mapper.FavoriteMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.dianzan.model.entity.Favorite">
+        <id property="id" column="id" />
+        <result property="userId" column="userId" />
+        <result property="blogId" column="blogId" />
+        <result property="createTime" column="createTime" />
+    </resultMap>
+
+    <select id="selectFavoriteCountByUserId" resultType="long">
+        SELECT COUNT(*)
+        FROM favorite
+        WHERE userId = #{userId}
+    </select>
+
+    <select id="selectFavoriteCountByBlogId" resultType="long">
+        SELECT COUNT(*)
+        FROM favorite
+        WHERE blogId = #{blogId}
+    </select>
+
+    <select id="selectFavoriteCountByBlogIds" resultType="map">
+        SELECT blogId AS blogId,
+               COUNT(*) AS favoriteCount
+        FROM favorite
+        WHERE blogId IN
+        <foreach collection="blogIds" item="blogId" open="(" separator="," close=")">
+            #{blogId}
+        </foreach>
+        GROUP BY blogId
+    </select>
+
+    <select id="selectExistingFavoriteBlogIds" resultType="long">
+        SELECT blogId
+        FROM favorite
+        WHERE userId = #{userId}
+          AND blogId IN
+        <foreach collection="blogIds" item="blogId" open="(" separator="," close=")">
+            #{blogId}
+        </foreach>
+    </select>
+</mapper>
+

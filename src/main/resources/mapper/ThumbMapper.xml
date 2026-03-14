@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.dianzan.mapper.ThumbMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.dianzan.model.entity.Thumb">
+        <id property="id" column="id" />
+        <result property="userId" column="userId" />
+        <result property="blogId" column="blogId" />
+        <result property="createTime" column="createTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,userId,blogId,createTime
+    </sql>
+
+    <insert id="insertIgnoreBatch">
+        INSERT IGNORE INTO thumb (userId, blogId, createTime)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userId}, #{item.blogId}, NOW())
+        </foreach>
+    </insert>
+
+    <select id="selectThumbCountByUserId" resultType="long">
+        SELECT COUNT(*)
+        FROM thumb
+        WHERE userId = #{userId}
+    </select>
+
+</mapper>

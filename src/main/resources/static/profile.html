@@ -1,0 +1,3181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人主页</title>
+  <link rel="stylesheet" href="/common-navbar.css">
+  <script src="/shell-embed-guard.js" data-shell-view="profile"></script>
+  <style>
+    @view-transition {
+      navigation: auto;
+    }
+    @keyframes page-fade-in {
+      from { opacity: .96; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes page-fade-out {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: .98; transform: translateY(-6px); }
+    }
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: .18s;
+      animation-timing-function: ease;
+    }
+    ::view-transition-old(root) { animation-name: page-fade-out; }
+    ::view-transition-new(root) { animation-name: page-fade-in; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1e80ff;
+      --primary-hover: #1168d4;
+      --text: #222222;
+      --muted: #808080;
+      --border: #eaeaea;
+      --card: #ffffff;
+      --bg: #f6f7fb;
+      --content-max-width: 760px;
+      --profile-summary-width: 560px;
+      --profile-card-gap: 18px;
+      --tab-panel-gap: 10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #ffffff;
+      color: var(--text);
+      min-height: 100vh;
+    }
+    html.embedded-shell body,
+    body.embedded-shell {
+      background: transparent;
+      overflow-x: hidden;
+    }
+    html.embedded-shell .navbar,
+    html.embedded-shell .sidebar,
+    body.embedded-shell .navbar,
+    body.embedded-shell .sidebar {
+      display: none;
+    }
+    html.embedded-shell .main-layout,
+    body.embedded-shell .main-layout {
+      display: block;
+      padding-top: 0;
+    }
+    html.embedded-shell .profile-page,
+    body.embedded-shell .profile-page {
+      padding: 16px 16px 32px;
+    }
+    html.embedded-shell .tab-bar,
+    body.embedded-shell .tab-bar {
+      top: 0;
+    }
+    html.embedded-shell .profile-card,
+    html.embedded-shell .tab-bar,
+    html.embedded-shell .panel,
+    body.embedded-shell .profile-card,
+    body.embedded-shell .tab-bar,
+    body.embedded-shell .panel {
+      max-width: min(100%, 1560px);
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .btn-login {
+      padding: 8px 20px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-login:hover { background: var(--primary-hover); }
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      position: relative;
+      font-size: 14px;
+      font-weight: 500;
+      color: #111827;
+    }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .user-dropdown {
+      display: none;
+      position: absolute;
+      top: 120%;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.1);
+      min-width: 140px;
+      overflow: hidden;
+      z-index: 200;
+    }
+    .user-dropdown a {
+      display: block;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: var(--text);
+      text-decoration: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .user-dropdown a:hover { background: #f5f5f5; }
+    .notif-dot {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ef4444;
+      color: #fff;
+      font-size: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .main-layout {
+      display: flex;
+      padding-top: var(--navbar-height);
+      align-items: flex-start;
+    }
+
+    .sidebar {
+      width: 200px;
+      position: sticky;
+      top: var(--navbar-height);
+      height: calc(100vh - var(--navbar-height));
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #555;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .nav-item:hover {
+      background-color: #f3f4f6;
+      color: #111827;
+    }
+    .nav-item.active {
+      background-color: #f3f4f6;
+      color: #111827;
+      font-weight: 600;
+    }
+    .nav-item span.icon {
+      font-size: 20px;
+      width: 24px;
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 1.5;
+    }
+
+    .profile-page {
+      flex: 1;
+      min-width: 0;
+      padding: 24px 24px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      align-items: center;
+    }
+
+    .profile-card {
+      background: transparent;
+      border-radius: 0;
+      padding: 8px 0 0;
+      display: block;
+      box-shadow: none;
+      border: none;
+      position: relative;
+      overflow: hidden;
+      width: min(100%, 1560px);
+      margin: 0 auto var(--profile-card-gap);
+    }
+    .profile-identity {
+      display: flex;
+      gap: 28px;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+      width: min(100%, 880px);
+      margin: 0 auto;
+    }
+    .profile-card::before,
+    .profile-card::after {
+      content: '';
+      position: absolute;
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .profile-card::before {
+      display: none;
+    }
+    .profile-card::after {
+      display: none;
+    }
+    .profile-avatar-wrap {
+      flex-shrink: 0;
+      padding: 8px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(245,248,255,.95));
+      border: 1px solid rgba(30,128,255,.10);
+      box-shadow: 0 12px 24px rgba(15,23,42,.06);
+      position: relative;
+      z-index: 1;
+    }
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 46px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      box-shadow: inset 0 -10px 20px rgba(0,0,0,.10);
+    }
+    .profile-avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+    }
+    .profile-meta {
+      flex: 1;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+      text-align: left;
+      position: relative;
+      z-index: 1;
+    }
+    .profile-topline {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex-direction: column;
+      gap: 18px;
+      width: 100%;
+      align-items: flex-start;
+    }
+    .profile-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+      align-items: flex-start;
+    }
+    .username-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    .username {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 0;
+      line-height: 1.15;
+    }
+    .bio-panel {
+      align-self: stretch;
+      width: min(100%, 680px);
+      max-width: 100%;
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #ffffff;
+      border: 1px solid #e8edf5;
+      box-shadow: 0 4px 14px rgba(15,23,42,.04);
+    }
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #6b7280;
+      letter-spacing: .06em;
+      margin-bottom: 8px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #f3f6fb;
+    }
+    .bio {
+      font-size: 15px;
+      color: #374151;
+      margin-bottom: 0;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .profile-actions {
+      display: inline-flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: auto;
+    }
+    .follow-btn {
+      border: 1px solid rgba(30,128,255,0.18);
+      background: #1e80ff;
+      color: #fff;
+      border-radius: 999px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .18s ease;
+      box-shadow: 0 8px 18px rgba(30,128,255,.16);
+    }
+    .follow-btn:hover:not(:disabled),
+    .profile-edit-btn:hover {
+      transform: translateY(-1px);
+    }
+    .follow-btn.secondary {
+      background: #fff;
+      color: #1e80ff;
+      box-shadow: none;
+    }
+    .follow-btn:disabled {
+      opacity: .7;
+      cursor: not-allowed;
+    }
+    .profile-edit-btn {
+      border: 1px solid rgba(15,23,42,0.12);
+      background: #fff;
+      color: #111827;
+      border-radius: 999px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .18s ease;
+    }
+    .profile-edit-btn:hover {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+    }
+
+    .profile-stats-compact {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-top: 2px;
+    }
+    .compact-stat {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      border: none;
+      background: none;
+      padding: 0;
+      color: #111827;
+      cursor: default;
+      text-align: left;
+    }
+    .compact-stat.clickable { cursor: pointer; }
+    .compact-stat.clickable:hover .compact-stat-value,
+    .compact-stat.clickable:hover .compact-stat-label {
+      color: var(--primary);
+    }
+    .compact-stat-value {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      color: #111827;
+    }
+    .compact-stat-label {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.2;
+    }
+    .tab-bar {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      border-bottom: none;
+      padding: 0 0 4px;
+      width: min(100%, 1560px);
+      margin: 0 auto var(--tab-panel-gap);
+      position: sticky;
+      top: var(--navbar-height);
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(10px);
+      z-index: 5;
+    }
+    .tab {
+      border: none;
+      background: none;
+      padding: 10px 18px;
+      font-size: 14px;
+      color: #6b7280;
+      cursor: pointer;
+      border-radius: 999px;
+    }
+    .tab.active {
+      background: #ffffff;
+      box-shadow: none;
+      border: 1px solid #e5e7eb;
+      color: #111827;
+      font-weight: 600;
+      position: relative;
+    }
+    .tab-count {
+      margin-left: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: inherit;
+    }
+    /* Removed underline pseudo-element per design request */
+
+    .blog-result-count {
+      display: none;
+    }
+
+    .panel {
+      background: transparent;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
+      border: none;
+      width: min(100%, 1560px);
+      margin: 0 auto;
+    }
+
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 20px;
+      width: 100%;
+      --masonry-row: 8px;
+      grid-auto-flow: dense;
+      align-items: start;
+    }
+    .blog-grid.masonry-ready {
+      grid-auto-rows: var(--masonry-row);
+    }
+    .blog-tools {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .blog-tool-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .blog-filter-btn {
+      border: 1px solid rgba(15,23,42,0.12);
+      background: #fff;
+      border-radius: 999px;
+      padding: 7px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      color: #374151;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .blog-filter-btn.active {
+      background: #111827;
+      color: #fff;
+      border-color: #111827;
+    }
+    .blog-search-input {
+      min-width: 240px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 13px;
+      outline: none;
+      background: #fff;
+      color: #111827;
+    }
+    .blog-search-input:focus { border-color: #d1d5db; }
+    .blog-result-count {
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .record-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(30,128,255,.08);
+      color: #1e60c9;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .xhs-card {
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s;
+      border: 1px solid #f0f0f0;
+      width: 100%;
+    }
+    .xhs-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.04);
+    }
+    .blog-card {
+      box-shadow: none;
+    }
+    .blog-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.04); }
+    .card-media {
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      background: linear-gradient(160deg, #f8fafc 0%, #eef2f7 100%);
+    }
+    .blog-cover-shell {
+      position: relative;
+      background: linear-gradient(160deg, #f8fafc 0%, #eef2f7 100%);
+      overflow: hidden;
+      border-radius: 16px;
+    }
+    .card-cover {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      border-radius: 16px;
+      background: #f0f0f0;
+      display: block;
+      aspect-ratio: 3 / 4;
+      transition: opacity .18s ease;
+    }
+    .blog-cover {
+      width: 100%;
+      height: auto;
+      display: block;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      border-radius: 16px;
+      background: #f0f0f0;
+      transition: opacity .18s ease;
+    }
+    .blog-cover-shell.media-landscape .blog-cover {
+      object-fit: contain;
+      padding: 10px;
+      background: linear-gradient(160deg, #f8fafc 0%, #eef2ff 100%);
+    }
+    .blog-cover-fallback {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+    .blog-cover-shell.is-fallback .blog-cover,
+    .blog-cover-shell.no-cover .blog-cover {
+      opacity: 0;
+    }
+    .blog-cover-shell.is-fallback .blog-cover-fallback,
+    .blog-cover-shell.no-cover .blog-cover-fallback {
+      opacity: 1;
+    }
+    .media-fallback {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(160deg, #dbe6f5 0%, #c4d4ea 100%);
+    }
+    .blog-cover-fallback.media-fallback { padding: 18px; }
+    .media-fallback-art {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 12px;
+      border-radius: 14px;
+      padding: 16px;
+      background:
+        radial-gradient(circle at 24% 24%, rgba(255,255,255,.96) 0 18%, rgba(255,255,255,0) 19%),
+        radial-gradient(circle at 78% 18%, rgba(255,255,255,.7) 0 12%, rgba(255,255,255,0) 13%),
+        linear-gradient(180deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,.62) 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
+    }
+    .media-fallback-line {
+      display: block;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.96);
+      box-shadow: 0 12px 28px rgba(71,85,105,.18);
+    }
+    .media-fallback-line-lg { width: 72%; }
+    .media-fallback-line-md { width: 52%; }
+    .media-fallback-line-sm { width: 36%; }
+    .media-fallback-frame {
+      width: 100%;
+      height: 100%;
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background: linear-gradient(180deg, rgba(255,255,255,.2) 0%, rgba(255,255,255,.08) 100%);
+      border: 1px solid rgba(255,255,255,.34);
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,.12);
+    }
+    .media-fallback-tip {
+      margin-top: 14px;
+      align-self: flex-start;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.72);
+      color: #fff;
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+    .card-media-fallback {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+    .card-media.is-fallback .card-cover,
+    .card-media.no-cover .card-cover {
+      opacity: 0;
+    }
+    .card-media.is-fallback .card-media-fallback,
+    .card-media.no-cover .card-media-fallback {
+      opacity: 1;
+    }
+    .blog-cover-shell.text-card {
+      background: #ffffff;
+      border: 1px solid #eceff3;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+      aspect-ratio: 3 / 4;
+    }
+    .card-text-shell {
+      aspect-ratio: 3 / 4;
+      padding: 34px 30px 42px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0;
+      position: relative;
+      background: #ffffff;
+      border: 1px solid #eef2f7;
+      border-radius: 28px;
+    }
+    .card-text-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      min-height: 100%;
+      text-align: center;
+    }
+    .card-text-title {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.34;
+      color: #2f2f2b;
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      letter-spacing: .01em;
+      text-align: center;
+    }
+    .card-text-quote {
+      display: none;
+    }
+    .profile-card-content {
+      padding: 12px 8px 4px;
+    }
+    .profile-card-content:empty {
+      display: none;
+    }
+    .profile-card-content .record-badge {
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      color: #111827;
+      line-height: 1.5;
+    }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px 12px 8px;
+      gap: 12px;
+    }
+    .xhs-card.text-card .card-footer {
+      padding-top: 8px;
+    }
+    .card-author {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #4b5563;
+      min-width: 0;
+      flex: 1;
+    }
+    .card-author .avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 11px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .card-author-copy {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .card-author-name,
+    .card-author-meta {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-author-name {
+      color: #4b5563;
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 600;
+    }
+    .card-author-meta {
+      color: #9ca3af;
+      font-size: 12px;
+    }
+    .card-like {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: #9ca3af;
+      flex-shrink: 0;
+      border: none;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+      box-shadow: none;
+      transition: color .18s ease;
+    }
+    .card-like:hover { color: #6b7280; }
+    .card-like.liked { color: #ef4444; }
+    .card-like .heart {
+      width: 20px;
+      height: 20px;
+      color: currentColor;
+      pointer-events: none;
+      flex-shrink: 0;
+    }
+    .cover-like-count {
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 500;
+      color: currentColor;
+      pointer-events: none;
+    }
+    .manage-btns {
+      display: flex;
+      gap: 8px;
+      padding: 0 8px 12px;
+    }
+    .btn-edit, .btn-del {
+      flex: 1;
+      padding: 6px 0;
+      border-radius: 8px;
+      font-size: 12px;
+      text-align: center;
+      border: 1px solid #ddd;
+      background: #fff;
+      cursor: pointer;
+    }
+    .btn-del {
+      color: #ef4444;
+      border-color: #ef4444;
+    }
+    .blog-text-shell {
+      width: 100%;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 10px;
+      min-height: 100%;
+      aspect-ratio: 3 / 4;
+    }
+    .blog-text-label {
+      align-self: flex-start;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(17,24,39,.06);
+      font-size: 11px;
+      font-weight: 600;
+      color: #4b5563;
+      letter-spacing: .04em;
+    }
+    .blog-text-title {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #111827;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .blog-text-excerpt {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #4b5563;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .blog-body { padding: 18px 20px 22px; }
+    .blog-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .blog-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #6b7280;
+      gap: 12px;
+    }
+    .blog-author { display: flex; align-items: center; gap: 6px; }
+    .blog-author-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+    .blog-author-name,
+    .blog-date {
+      white-space: nowrap;
+    }
+    .blog-date {
+      color: #94a3b8;
+    }
+    .blog-meta-separator {
+      color: #cbd5e1;
+    }
+    .blog-author-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+    .blog-like {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .blog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 0 20px 18px;
+    }
+    .action-btn {
+      border: 1px solid rgba(15,23,42,0.12);
+      background: #fff;
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      color: #374151;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .action-btn:hover { background: #f3f4f6; border-color: #d1d5db; color: #111827; }
+    .action-btn.delete { color: #ef4444; border-color: rgba(239,68,68,0.5); }
+    .action-btn.delete:hover { background: rgba(239,68,68,0.08); }
+
+    .placeholder {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .blog-load-state {
+      text-align: center;
+      padding: 18px 0 6px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .toast {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-16px);
+      background: rgba(0,0,0,0.82);
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 999px;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all .25s ease;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(246,247,251,0.85); /* 更浅色遮罩 */
+      backdrop-filter: blur(6px) saturate(1.2);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 140;
+      transition: background 0.2s;
+    }
+    .modal-mask.show { display: flex; }
+    .modal-card {
+      width: min(100%, 620px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), #f6f7fb 42%);
+      border-radius: 30px;
+      padding: 30px;
+      box-shadow: 0 32px 90px rgba(30,128,255,0.12), 0 2px 8px rgba(30,128,255,0.06);
+      border: 1px solid #eaeaea;
+      position: relative;
+      overflow: hidden;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      margin: 0 auto;
+    }
+    .modal-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 132px;
+      background: radial-gradient(circle at top left, rgba(30,128,255,.18), transparent 52%),
+                  linear-gradient(180deg, rgba(248,251,255,.96), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid rgba(226,232,240,.8);
+      position: relative;
+      z-index: 1;
+      background: none;
+    }
+    .modal-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .modal-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(30,128,255,.10);
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+    .modal-title {
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+      margin-bottom: 0;
+      color: #222;
+    }
+    .modal-subtitle {
+      max-width: 420px;
+      font-size: 14px;
+      color: #7c8aa0;
+      margin-bottom: 0;
+      line-height: 1.75;
+    }
+    .modal-close {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(148,163,184,.18);
+      background: #f6f7fb;
+      color: #222;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease;
+    }
+    .modal-close:hover {
+      background: #fff;
+      color: #1e80ff;
+      box-shadow: 0 10px 20px rgba(30,128,255,0.10);
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding: 16px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #fff, #f6f7fb);
+      border: 1px solid #eaeaea;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+    .form-group:focus-within {
+      border-color: rgba(59,130,246,.28);
+      box-shadow: 0 0 0 5px rgba(30,128,255,.08);
+    }
+    .avatar-upload-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .avatar-upload-preview {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: #eaf4ff;
+      color: #1e80ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      font-weight: 700;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: inset 0 -10px 20px rgba(0,0,0,.10);
+    }
+    .avatar-upload-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .avatar-upload-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      min-width: 220px;
+    }
+    .avatar-upload-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .avatar-upload-btn {
+      border: 1px solid rgba(15,23,42,0.12);
+      background: rgba(255,255,255,.96);
+      color: #111827;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .avatar-upload-btn.primary {
+      background: #1e80ff;
+      border-color: #1e80ff;
+      color: #fff;
+    }
+    .avatar-upload-btn:disabled {
+      background: #f6f7fb;
+      color: #aaa;
+    }
+    .form-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #111827;
+    }
+    .form-input,
+    .form-textarea {
+      width: 100%;
+      border: 1px solid #dbe4ef;
+      border-radius: 18px;
+      padding: 14px 16px;
+      font-size: 15px;
+      color: #111827;
+      outline: none;
+      background: #fff;
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .form-input:focus,
+    .form-textarea:focus {
+      border-color: rgba(30,128,255,.36);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(30,128,255,.10);
+    }
+    .form-textarea {
+      min-height: 168px;
+      resize: vertical;
+      line-height: 1.7;
+    }
+    .form-hint {
+      font-size: 12px;
+      color: #7c8aa0;
+    }
+    .form-hint-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .form-hint.count {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(148,163,184,.10);
+      color: #64748b;
+      font-weight: 600;
+    }
+    .form-hint.count.warn {
+      color: #dc2626;
+      font-weight: 600;
+      background: rgba(239,68,68,.10);
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 28px;
+      padding-top: 4px;
+    }
+    .modal-btn {
+      border: 1px solid rgba(15,23,42,0.12);
+      background: rgba(255,255,255,.96);
+      color: #111827;
+      border-radius: 999px;
+      padding: 11px 22px;
+      min-width: 84px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .modal-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(148,163,184,.34);
+      background: #fff;
+      box-shadow: 0 12px 24px rgba(15,23,42,.08);
+    }
+    .modal-btn.primary {
+      background: linear-gradient(135deg, #2b7fff 0%, #1d6fff 100%);
+      color: #fff;
+      border-color: #1e80ff;
+      box-shadow: 0 16px 30px rgba(30,128,255,.28);
+    }
+    .modal-btn.primary:hover {
+      background: linear-gradient(135deg, #1f74f6 0%, #165fdb 100%);
+      border-color: #1a6ded;
+      box-shadow: 0 18px 32px rgba(30,128,255,.32);
+    }
+    .modal-btn:disabled {
+      opacity: .7;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* 居中弹窗优化 */
+    #editProfileModal.modal-mask {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 140;
+      background: rgba(246,247,251,0.85);
+      backdrop-filter: blur(6px) saturate(1.2);
+      align-items: center;
+      justify-content: center;
+    }
+    #editProfileModal.modal-mask.show {
+      display: flex;
+    }
+    #editProfileModal .modal-card {
+      margin: 0 auto;
+      position: relative;
+      top: 0;
+      left: 0;
+      transform: none;
+    }
+    html.embedded-shell #editProfileModal.modal-mask,
+    body.embedded-shell #editProfileModal.modal-mask {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: auto;
+      left: 0;
+      min-height: var(--embed-modal-overlay-height, 100%);
+      padding: 0;
+    }
+    html.embedded-shell #editProfileModal.modal-mask.show,
+    body.embedded-shell #editProfileModal.modal-mask.show {
+      display: block;
+    }
+    html.embedded-shell #editProfileModal .modal-card,
+    body.embedded-shell #editProfileModal .modal-card {
+      position: absolute;
+      top: var(--embed-modal-center-y, 50vh);
+      left: 50%;
+      width: min(calc(100% - 40px), 620px);
+      max-height: var(--embed-modal-max-height, calc(100vh - 40px));
+      margin: 0;
+      transform: translate(-50%, -50%);
+    }
+
+    @media (max-width: 1360px) {
+      .blog-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 1100px) {
+      .blog-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 840px) {
+      .blog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 1100px) {
+      .main-layout {
+        flex-direction: column;
+      }
+      .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        padding: 20px 24px 0;
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      .profile-page {
+        width: 100%;
+        align-items: stretch;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .profile-card { padding: 22px 20px; }
+      .profile-identity { flex-direction: column; align-items: flex-start; gap: 18px; width: 100%; }
+      .profile-avatar-wrap { margin: 0; }
+      .profile-avatar { width: 108px; height: 108px; font-size: 42px; }
+      .profile-meta { width: 100%; align-items: flex-start; }
+      .profile-topline { width: 100%; flex-direction: column; align-items: flex-start; }
+      .profile-title-group { align-items: flex-start; }
+      .bio-panel { width: 100%; max-width: none; text-align: left; padding: 12px 14px; border-radius: 14px; }
+      .profile-stats-compact,
+      .profile-actions,
+      .username-row { justify-content: flex-start; }
+      .profile-actions { width: auto; }
+      .sidebar { padding-left: 16px; padding-right: 16px; }
+      .tab-bar { top: var(--navbar-height); width: 100%; padding-left: 0; padding-right: 0; }
+      .modal-card { padding: 24px 20px; border-radius: 24px; }
+      .modal-header { margin-bottom: 18px; padding-bottom: 16px; }
+      .modal-title { font-size: 26px; }
+      .modal-subtitle { max-width: none; }
+      .form-group { padding: 14px; border-radius: 20px; }
+      .form-textarea { min-height: 148px; }
+      .modal-actions { flex-direction: column-reverse; }
+      .modal-btn { width: 100%; }
+    }
+
+    @media (max-width: 640px) {
+      .blog-grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        gap: 16px;
+        --masonry-row: 6px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .profile-page { padding-left: 16px; padding-right: 16px; }
+      .profile-card { padding: 22px 0 0; border-radius: 0; }
+      .profile-avatar { width: 96px; height: 96px; font-size: 38px; }
+      .username { font-size: 22px; }
+      .bio-panel { padding: 11px 12px; }
+      .bio { font-size: 14px; line-height: 1.7; }
+      .profile-stats-compact { gap: 14px; }
+      .compact-stat-value { font-size: 15px; }
+      .modal-card { padding: 20px 16px; border-radius: 22px; }
+      .modal-close { width: 40px; height: 40px; }
+      .modal-title { font-size: 24px; }
+      .form-group { padding: 12px; border-radius: 18px; }
+      .form-input,
+      .form-textarea { font-size: 14px; padding: 13px 14px; }
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="navbar-brand" onclick="goHome()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+      </svg>
+      博客广场
+    </div>
+    <div class="navbar-search">
+      <span class="search-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="M20 20l-3.5-3.5"></path>
+        </svg>
+      </span>
+      <input type="text" aria-label="搜索内容" placeholder="搜索探索更多内容" onkeydown="if(event.key==='Enter') SiteNavigation.navigateDiscovery(this.value)">
+    </div>
+    <div class="navbar-right" id="navRight">
+      <button class="btn-login" type="button" onclick="goHome()">登录</button>
+    </div>
+  </div>
+</nav>
+<div class="main-layout">
+  <aside class="sidebar">
+    <div class="nav-item" onclick="goHome()" data-prefetch-url="/">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      </span> 发现
+    </div>
+    <div class="nav-item" onclick="openPublishPage()" data-prefetch-url="/publish.html">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 9v6m-3-3h6"></path><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path></svg>
+      </span> 发布
+    </div>
+    <div class="nav-item" onclick="openNotificationsPage()" data-prefetch-url="/notifications.html">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+      </span> 通知
+    </div>
+    <div class="nav-item active" onclick="openOwnProfilePage()" data-prefetch-profile="1">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      </span> 我
+    </div>
+  </aside>
+
+<main class="content-area profile-page">
+  <section class="profile-card" id="profileCard">
+    <div class="profile-identity">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar" id="avatarBadge">U</div>
+      </div>
+      <div class="profile-meta">
+        <div class="profile-topline">
+          <div class="profile-title-group">
+            <div class="username-row">
+              <div class="username" id="username">用户昵称</div>
+              <div class="profile-actions" id="profileActions"></div>
+            </div>
+          </div>
+        </div>
+        <div class="bio-panel">
+          <div class="bio" id="bio">还没有填写个人简历</div>
+        </div>
+        <div class="profile-stats-compact">
+          <button class="compact-stat clickable" type="button" onclick="openFollowList('following')">
+            <span class="compact-stat-value" id="statFollow">0</span>
+            <span class="compact-stat-label">关注</span>
+          </button>
+          <button class="compact-stat clickable" type="button" onclick="openFollowList('fans')">
+            <span class="compact-stat-value" id="statFans">0</span>
+            <span class="compact-stat-label">粉丝</span>
+          </button>
+          <div class="compact-stat">
+            <span class="compact-stat-value" id="statLikeCollect">0</span>
+            <span class="compact-stat-label">获赞与收藏</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="tab-bar">
+    <button class="tab active" data-tab="blogs" onclick="switchTab('blogs')">博客<span class="tab-count" id="tabBlogCount">0</span></button>
+    <button class="tab" data-tab="favorites" onclick="switchTab('favorites')">收藏<span class="tab-count" id="tabFavoritesCount">0</span></button>
+    <button class="tab" data-tab="likes" onclick="switchTab('likes')">点赞<span class="tab-count" id="tabLikesCount">0</span></button>
+  </div>
+
+  <section class="panel" id="panel-blogs">
+    <div class="blog-tools" id="blogTools">
+      <div class="blog-tool-group">
+        <button class="blog-filter-btn active" type="button" data-sort="latest" onclick="setBlogSort('latest')">最新发布</button>
+        <button class="blog-filter-btn" type="button" data-sort="thumb" onclick="setBlogSort('thumb')">最多点赞</button>
+      </div>
+      <div class="blog-tool-group">
+        <input class="blog-search-input" id="blogSearchInput" type="text" aria-label="搜索博客" placeholder="搜索标题或正文关键词" oninput="setBlogKeyword(this.value)">
+        <span class="blog-result-count" id="blogResultCount">0 篇内容</span>
+      </div>
+    </div>
+    <div class="placeholder" id="blogPlaceholder">博客内容加载中，请稍候…</div>
+    <div class="blog-grid" id="blogGrid" style="display:none;"></div>
+    <div class="blog-load-state" id="blogLoadState" style="display:none;"></div>
+    <div id="blogScrollSentinel" style="height:1px;"></div>
+  </section>
+  <section class="panel" id="panel-favorites" style="display:none;">
+    <div class="blog-tools" id="favoritesTools">
+      <div class="blog-tool-group">
+        <span class="blog-result-count" id="favoritesResultCount">0 条收藏记录</span>
+      </div>
+    </div>
+    <div class="placeholder" id="favoritesPlaceholder">收藏记录加载中，请稍候…</div>
+    <div class="blog-grid" id="favoritesGrid" style="display:none;"></div>
+    <div class="blog-load-state" id="favoritesLoadState" style="display:none;"></div>
+    <div id="favoritesScrollSentinel" style="height:1px;"></div>
+  </section>
+  <section class="panel" id="panel-likes" style="display:none;">
+    <div class="blog-tools" id="likesTools">
+      <div class="blog-tool-group">
+        <span class="blog-result-count" id="likesResultCount">0 条点赞记录</span>
+      </div>
+    </div>
+    <div class="placeholder" id="likesPlaceholder">点赞记录加载中，请稍候…</div>
+    <div class="blog-grid" id="likesGrid" style="display:none;"></div>
+    <div class="blog-load-state" id="likesLoadState" style="display:none;"></div>
+    <div id="likesScrollSentinel" style="height:1px;"></div>
+  </section>
+</main>
+</div>
+<div id="toast" class="toast"></div>
+<div id="editProfileModal" class="modal-mask" onclick="handleModalMaskClick(event)">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-copy">
+        <div class="modal-kicker">资料设置</div>
+        <div class="modal-title">编辑个人资料</div>
+        <div class="modal-subtitle">只展示年龄和个人简历，保存后会立即同步到当前个人主页。</div>
+      </div>
+      <button class="modal-close" type="button" aria-label="关闭" onclick="closeEditProfileModal()">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="editAvatarFileInput">头像</label>
+      <div class="avatar-upload-row">
+        <div class="avatar-upload-preview" id="editAvatarPreview">U</div>
+        <div class="avatar-upload-copy">
+          <div class="form-hint" id="editAvatarHint">支持 JPG、PNG、WEBP、GIF，建议上传清晰的 1:1 图片。</div>
+          <div class="avatar-upload-actions">
+            <input id="editAvatarFileInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onchange="handleAvatarFileChange(event)">
+            <button class="avatar-upload-btn primary" id="uploadAvatarBtn" type="button" onclick="triggerAvatarFileSelect()">上传头像</button>
+            <button class="avatar-upload-btn" id="clearAvatarBtn" type="button" onclick="clearAvatarSelection()">恢复默认</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="editAgeInput">年龄</label>
+      <input id="editAgeInput" class="form-input" type="number" min="1" max="150" placeholder="请输入年龄">
+      <div class="form-hint">请输入 1 - 150 之间的整数。</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="editBioInput">个人简历</label>
+      <textarea id="editBioInput" class="form-textarea" maxlength="200" placeholder="介绍一下你自己吧～"></textarea>
+      <div class="form-hint-row">
+        <div class="form-hint">支持换行，最多 200 个字符。</div>
+        <div class="form-hint count" id="bioCounter"><span id="bioCount">0</span>/200</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" type="button" onclick="closeEditProfileModal()">取消</button>
+      <button class="modal-btn primary" id="saveProfileBtn" type="button" onclick="submitProfileEdit()">保存</button>
+    </div>
+  </div>
+</div>
+<script src="/site-navigation.js"></script>
+<script src="/avatar-render.js"></script>
+<script src="/oss-upload.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const pid = params.get('userId')?.trim();
+  const isEmbeddedShell = window.SiteShellEmbed?.isEmbedded === true;
+  const navRight = document.getElementById('navRight');
+  const toastEl = document.getElementById('toast');
+  const blogPlaceholder = document.getElementById('blogPlaceholder');
+  const blogGrid = document.getElementById('blogGrid');
+  const blogTools = document.getElementById('blogTools');
+  const blogResultCount = document.getElementById('blogResultCount');
+  const tabBlogCount = document.getElementById('tabBlogCount');
+  const blogLoadState = document.getElementById('blogLoadState');
+  const blogScrollSentinel = document.getElementById('blogScrollSentinel');
+  const favoritesTools = document.getElementById('favoritesTools');
+  const favoritesPlaceholder = document.getElementById('favoritesPlaceholder');
+  const favoritesGrid = document.getElementById('favoritesGrid');
+  const favoritesResultCount = document.getElementById('favoritesResultCount');
+  const tabFavoritesCount = document.getElementById('tabFavoritesCount');
+  const favoritesLoadState = document.getElementById('favoritesLoadState');
+  const favoritesScrollSentinel = document.getElementById('favoritesScrollSentinel');
+  const likesTools = document.getElementById('likesTools');
+  const likesPlaceholder = document.getElementById('likesPlaceholder');
+  const likesGrid = document.getElementById('likesGrid');
+  const likesResultCount = document.getElementById('likesResultCount');
+  const tabLikesCount = document.getElementById('tabLikesCount');
+  const likesLoadState = document.getElementById('likesLoadState');
+  const likesScrollSentinel = document.getElementById('likesScrollSentinel');
+  const editProfileModal = document.getElementById('editProfileModal');
+  const avatarBadge = document.getElementById('avatarBadge');
+  const editAvatarPreview = document.getElementById('editAvatarPreview');
+  const editAvatarHint = document.getElementById('editAvatarHint');
+  const editAvatarFileInput = document.getElementById('editAvatarFileInput');
+  const uploadAvatarBtn = document.getElementById('uploadAvatarBtn');
+  const clearAvatarBtn = document.getElementById('clearAvatarBtn');
+  const editAgeInput = document.getElementById('editAgeInput');
+  const editBioInput = document.getElementById('editBioInput');
+  const bioCount = document.getElementById('bioCount');
+  const bioCounter = document.getElementById('bioCounter');
+  const saveProfileBtn = document.getElementById('saveProfileBtn');
+  const AUTO_ADAPT_LANDSCAPE_RATIO = 1.08;
+  const BLOG_PAGE_SIZE = 15;
+  let blogsLoading = false;
+  let blogsLoaded = false;
+  let viewerRole = 0;
+  let viewerId = null;
+  let viewerInfo = null;
+  let currentProfile = null;
+  let followSubmitting = false;
+  let profileSaving = false;
+  let avatarUploading = false;
+  let profileCanManage = false;
+  let profileCanEdit = false;
+  let pendingAvatarUrl = '';
+  let allBlogs = [];
+  let blogSort = 'latest';
+  let blogKeyword = '';
+  let blogCursor = '';
+  let blogTotal = 0;
+  let blogHasMore = true;
+  let blogMasonryRaf = 0;
+  let blogQueryToken = 0;
+  let blogObserver = null;
+  let pendingBlogReset = false;
+  let blogKeywordDebounceTimer = 0;
+  let favoritesLoading = false;
+  let favoritesLoaded = false;
+  let favoriteBlogs = [];
+  let favoritesCursor = '';
+  let favoritesTotal = 0;
+  let favoritesHasMore = true;
+  let favoritesMasonryRaf = 0;
+  let favoritesQueryToken = 0;
+  let favoritesObserver = null;
+  let pendingFavoritesReset = false;
+  let likesLoading = false;
+  let likesLoaded = false;
+  let likedBlogs = [];
+  let likesCursor = '';
+  let likesTotal = 0;
+  let likesHasMore = true;
+  const profileThumbPending = new Set();
+  let likesMasonryRaf = 0;
+  let likesQueryToken = 0;
+  let likesObserver = null;
+  let pendingLikesReset = false;
+  let embedHeightRaf = 0;
+  let modalViewportSyncAttached = false;
+  let parentScrollLockState = null;
+
+
+  function reportEmbedHeight() {
+    if (!isEmbeddedShell) return;
+    const height = Math.max(
+      document.documentElement.scrollHeight || 0,
+      document.body.scrollHeight || 0,
+      document.documentElement.offsetHeight || 0,
+      document.body.offsetHeight || 0
+    );
+    window.parent.postMessage({ type: 'shell:height', view: 'profile', height }, window.location.origin);
+  }
+
+  function scheduleEmbedHeightReport() {
+    if (!isEmbeddedShell) return;
+    if (embedHeightRaf) cancelAnimationFrame(embedHeightRaf);
+    embedHeightRaf = requestAnimationFrame(() => {
+      embedHeightRaf = requestAnimationFrame(reportEmbedHeight);
+    });
+  }
+
+  function navigateTopLevel(url) {
+    if (isEmbeddedShell && window.parent?.SiteShell?.navigate) {
+      window.parent.SiteShell.navigate(url);
+      return;
+    }
+    if (window.SiteNavigation) {
+      SiteNavigation.navigate(url);
+      return;
+    }
+    window.location.href = url;
+  }
+
+  function buildOwnProfileUrl(userId = viewerId) {
+    return userId ? `/profile.html?userId=${encodeURIComponent(userId)}` : '/profile.html';
+  }
+
+  function goHome() {
+    navigateTopLevel('/');
+  }
+
+  function redirectToLogin() {
+    if (window.SiteNavigation?.requestLogin) {
+      SiteNavigation.requestLogin({
+        returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}`
+      });
+      return;
+    }
+    goHome();
+  }
+
+  editBioInput.addEventListener('input', syncBioCount);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && editProfileModal.classList.contains('show')) {
+      closeEditProfileModal();
+    }
+  });
+  window.addEventListener('resize', requestBlogMasonryLayout);
+  window.addEventListener('resize', requestFavoritesMasonryLayout);
+  window.addEventListener('resize', requestLikesMasonryLayout);
+  window.addEventListener('resize', scheduleEmbedHeightReport);
+  window.addEventListener('pagehide', () => {
+    toggleParentScrollLock(false);
+    detachEditProfileModalViewportSync();
+  });
+
+  setupBlogInfiniteScroll();
+  setupFavoritesInfiniteScroll();
+  setupLikesInfiniteScroll();
+  bootstrap();
+
+  async function bootstrap() {
+    await hydrateViewer();
+    initProfile();
+    scheduleEmbedHeightReport();
+  }
+
+  async function hydrateViewer() {
+    const res = await request('/user/get/login');
+    if (res.code === 0 && res.data) {
+      viewerRole = Number(res.data.role || 0);
+      viewerId = res.data.id;
+      viewerInfo = res.data;
+    } else {
+      viewerRole = 0;
+      viewerId = null;
+      viewerInfo = null;
+    }
+    renderViewerEntry();
+    loadUnreadCount();
+    warmRoutes();
+    scheduleEmbedHeightReport();
+  }
+
+  function warmRoutes() {
+    if (!window.SiteNavigation) return;
+    SiteNavigation.onIdle(() => {
+      SiteNavigation.warmRoutes(['/', '/publish.html', '/notifications.html']);
+      SiteNavigation.installPrefetchers([
+        {
+          selector: '[data-prefetch-url]',
+          getUrl: element => element.getAttribute('data-prefetch-url') || ''
+        },
+        {
+          selector: '[data-prefetch-profile]',
+          getUrl: () => buildOwnProfileUrl()
+        }
+      ]);
+      if (viewerId) {
+        SiteNavigation.warmRoutes([buildOwnProfileUrl(viewerId)]);
+      }
+    });
+  }
+
+  function renderViewerEntry() {
+    if (!navRight) return;
+    if (!viewerInfo) {
+      navRight.innerHTML = `<button class="btn-login" type="button" onclick="goHome()">登录</button>`;
+      return;
+    }
+    const name = viewerInfo.username || `用户${viewerInfo.id || ''}`;
+    const avatarHtml = window.SiteAvatar?.renderHtml
+      ? SiteAvatar.renderHtml('user-avatar', { avatarUrl: viewerInfo.avatarUrl, username: name, avatarText: name })
+      : `<div class="user-avatar">${escapeHtml((name.charAt(0) || 'U').toUpperCase())}</div>`;
+    navRight.innerHTML = `
+      <div class="user-badge" onclick="toggleDropdown(event)">
+        ${avatarHtml}
+        <span>${escapeHtml(name)}</span>
+        <div class="notif-dot" id="notifDot" style="display:none;"></div>
+        <div class="user-dropdown" id="userDropdown">
+          <a onclick="openOwnProfilePage(event)">个人主页</a>
+          <a onclick="logout(event)" style="color:#ef4444">退出登录</a>
+        </div>
+      </div>`;
+  }
+
+  function toggleDropdown(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('userDropdown');
+    if (!dropdown) return;
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+  }
+
+  document.addEventListener('click', () => {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown) dropdown.style.display = 'none';
+  });
+
+  async function logout(event) {
+    if (event) event.stopPropagation();
+    await request('/user/logout', { method: 'POST' });
+    window.location.reload();
+  }
+
+  async function loadUnreadCount() {
+    if (!viewerInfo) return;
+    const res = await request('/notification/unread/count');
+    const dot = document.getElementById('notifDot');
+    if (!dot) return;
+    if (res.code === 0 && Number(res.data || 0) > 0) {
+      dot.style.display = 'flex';
+      dot.textContent = Number(res.data) > 99 ? '99+' : String(res.data);
+      return;
+    }
+    dot.style.display = 'none';
+    dot.textContent = '';
+  }
+
+  function openPublishPage() {
+    if (!viewerId) {
+      redirectToLogin();
+      return;
+    }
+    navigateTopLevel('/publish.html');
+  }
+
+  function openNotificationsPage() {
+    if (!viewerId) {
+      redirectToLogin();
+      return;
+    }
+    navigateTopLevel('/notifications.html');
+  }
+
+  function openOwnProfilePage(event) {
+    if (event) event.stopPropagation();
+    if (!viewerId) {
+      redirectToLogin();
+      return;
+    }
+    const ownProfileUrl = buildOwnProfileUrl(viewerId);
+    if (String(pid || '') === String(viewerId || '')) return;
+    navigateTopLevel(ownProfileUrl);
+  }
+
+  async function initProfile() {
+    const url = pid ? `/user/profile?userId=${encodeURIComponent(pid)}` : '/user/profile';
+    const res = await request(url);
+    if (isUnauthorized(res)) {
+      renderProfileLoginRequired();
+      renderBlogLoginRequired();
+      redirectToLogin();
+      return;
+    }
+    if (res.code !== 0 || !res.data) {
+      showToast(res.message || '加载个人信息失败');
+      document.getElementById('profileCard').innerHTML = '<div style="text-align:center; width:100%;">暂时无法获取该用户信息。</div>';
+      return;
+    }
+    renderProfile(res.data);
+  }
+
+  function renderProfile(data) {
+    currentProfile = { ...data };
+    profileCanManage = !!(data?.self || viewerRole === 1);
+    profileCanEdit = !!data?.self;
+    document.getElementById('username').textContent = data.username || '未命名用户';
+    document.getElementById('bio').textContent = data.bio || '还没有填写个人简历';
+    renderProfileAvatar(data);
+
+    renderFollowAction(data);
+
+    document.getElementById('statFollow').textContent = formatNumber(data.followCount);
+    document.getElementById('statFans').textContent = formatNumber(data.fansCount);
+    document.getElementById('statLikeCollect').textContent = formatNumber(data.likedAndCollectedCount);
+    updateTabCounts();
+
+    if (!blogsLoaded && !blogsLoading && !allBlogs.length) {
+      resetAndLoadUserBlogs();
+      return;
+    }
+    renderBlogList();
+    scheduleEmbedHeightReport();
+  }
+
+  function renderFollowAction(data) {
+    const actions = document.getElementById('profileActions');
+    if (!actions) return;
+    if (!data) {
+      actions.innerHTML = '';
+      return;
+    }
+    if (data.self) {
+      actions.innerHTML = '<button class="profile-edit-btn" type="button" onclick="openEditProfileModal()">编辑资料</button>';
+      return;
+    }
+    const buttonText = !viewerId
+      ? '登录后关注'
+      : (data.following ? '已关注' : '关注');
+    actions.innerHTML = `<button class="follow-btn${data.following ? ' secondary' : ''}" id="followBtn" type="button" onclick="toggleFollow()">${buttonText}</button>`;
+  }
+
+  async function toggleFollow() {
+    if (!currentProfile || !currentProfile.userId || currentProfile.self || followSubmitting) return;
+    if (!viewerId) {
+      redirectToLogin();
+      return;
+    }
+    const followBtn = document.getElementById('followBtn');
+    const nextFollowing = !currentProfile.following;
+    const url = nextFollowing
+      ? `/follow/do?userId=${encodeURIComponent(currentProfile.userId)}`
+      : `/follow/undo?userId=${encodeURIComponent(currentProfile.userId)}`;
+    followSubmitting = true;
+    if (followBtn) {
+      followBtn.disabled = true;
+      followBtn.textContent = nextFollowing ? '关注中…' : '取消中…';
+    }
+    const res = await request(url, { method: 'POST' });
+    followSubmitting = false;
+    if (isUnauthorized(res)) {
+      redirectToLogin();
+      renderFollowAction(currentProfile);
+      return;
+    }
+    if (res.code !== 0 || !res.data) {
+      showToast(res.message || '操作失败，请稍后重试');
+      renderFollowAction(currentProfile);
+      return;
+    }
+    currentProfile.following = !!res.data.following;
+    const fallbackFansCount = Math.max(0, Number(currentProfile.fansCount || 0) + (currentProfile.following ? 1 : -1));
+    currentProfile.fansCount = Number(res.data.fansCount ?? fallbackFansCount);
+    document.getElementById('statFans').textContent = formatNumber(currentProfile.fansCount);
+    renderFollowAction(currentProfile);
+  }
+
+  function openFollowList(type) {
+    if (!viewerId) {
+      redirectToLogin();
+      return;
+    }
+    const targetUserId = currentProfile?.userId || pid || viewerId;
+    const query = new URLSearchParams();
+    if (targetUserId) query.set('userId', targetUserId);
+    query.set('type', type === 'fans' ? 'fans' : 'following');
+    navigateTopLevel(`/follow-list.html?${query.toString()}`);
+  }
+
+  function openEditProfileModal() {
+    if (!profileCanEdit || !currentProfile) return;
+    pendingAvatarUrl = normalizeImageUrl(currentProfile.avatarUrl);
+    editAgeInput.value = currentProfile.age ?? '';
+    editBioInput.value = currentProfile.bio || '';
+    syncAvatarUploadPreview();
+    resetAvatarUploadState();
+    syncBioCount();
+    saveProfileBtn.disabled = false;
+    saveProfileBtn.textContent = '保存';
+    toggleEditProfileModal(true);
+    setTimeout(() => editAgeInput.focus(), 0);
+  }
+
+  function closeEditProfileModal() {
+    if (profileSaving) return;
+    toggleEditProfileModal(false);
+  }
+
+  function handleModalMaskClick(event) {
+    if (event.target === editProfileModal) {
+      closeEditProfileModal();
+    }
+  }
+
+  async function submitProfileEdit() {
+    if (!profileCanEdit || !currentProfile || profileSaving || avatarUploading) return;
+    const ageValue = Number(editAgeInput.value);
+    const bioValue = String(editBioInput.value || '').trim();
+    if (!Number.isInteger(ageValue) || ageValue < 1 || ageValue > 150) {
+      showToast('年龄需在 1-150 之间');
+      editAgeInput.focus();
+      return;
+    }
+    if (bioValue.length > 200) {
+      showToast('个人简历不能超过 200 个字符');
+      editBioInput.focus();
+      return;
+    }
+    profileSaving = true;
+    saveProfileBtn.disabled = true;
+    saveProfileBtn.textContent = '保存中…';
+    const res = await request('/user/me/profile', {
+      method: 'POST',
+      body: JSON.stringify({ age: ageValue, bio: bioValue, avatarUrl: pendingAvatarUrl || null })
+    });
+    profileSaving = false;
+    saveProfileBtn.disabled = false;
+    saveProfileBtn.textContent = '保存';
+    if (isUnauthorized(res)) {
+      showToast(res.message || '请先登录');
+      return;
+    }
+    if (res.code !== 0 || !res.data) {
+      showToast(res.message || '保存失败，请稍后重试');
+      return;
+    }
+    closeEditProfileModal();
+    renderProfile(res.data);
+    showToast('个人资料已更新');
+  }
+
+  function triggerAvatarFileSelect() {
+    if (avatarUploading) return;
+    editAvatarFileInput.click();
+  }
+
+  async function handleAvatarFileChange(event) {
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+    if (!window.SiteOssUpload?.uploadImage) {
+      showToast('上传能力未就绪，请刷新后重试');
+      editAvatarFileInput.value = '';
+      return;
+    }
+    avatarUploading = true;
+    saveProfileBtn.disabled = true;
+    uploadAvatarBtn.disabled = true;
+    clearAvatarBtn.disabled = true;
+    editAvatarHint.textContent = '头像上传中…';
+    try {
+      const result = await SiteOssUpload.uploadImage(file, 'avatar');
+      pendingAvatarUrl = normalizeImageUrl(result.publicUrl);
+      syncAvatarUploadPreview();
+      editAvatarHint.textContent = '头像已上传成功，保存后生效。';
+      showToast('头像上传成功');
+    } catch (error) {
+      editAvatarHint.textContent = error?.message || '头像上传失败，请稍后重试';
+      showToast(editAvatarHint.textContent);
+    } finally {
+      avatarUploading = false;
+      editAvatarFileInput.value = '';
+      resetAvatarUploadState();
+    }
+  }
+
+  function clearAvatarSelection() {
+    pendingAvatarUrl = '';
+    syncAvatarUploadPreview();
+    editAvatarHint.textContent = '已恢复默认头像，保存后生效。';
+  }
+
+  function syncEditProfileModalViewportPosition() {
+    if (!isEmbeddedShell || !editProfileModal?.classList.contains('show')) return;
+    try {
+      const frame = window.frameElement;
+      const parentWindow = window.parent;
+      const parentDoc = parentWindow?.document;
+      if (!frame || !parentWindow || !parentDoc) return;
+      const frameRect = frame.getBoundingClientRect();
+      const parentViewportHeight = parentWindow.innerHeight || parentDoc.documentElement.clientHeight || window.innerHeight;
+      const visibleTop = Math.max(0, -frameRect.top);
+      const visibleBottom = Math.min(frameRect.height, parentViewportHeight - frameRect.top);
+      const visibleHeight = Math.max(0, visibleBottom - visibleTop) || Math.min(frameRect.height, parentViewportHeight);
+      const centerY = Math.max(visibleTop + (visibleHeight / 2), 24);
+      const overlayHeight = Math.max(
+        document.documentElement.scrollHeight || 0,
+        document.body.scrollHeight || 0,
+        frameRect.height || 0
+      );
+      const maxHeight = Math.max(320, Math.min(visibleHeight - 32, parentViewportHeight - 32));
+      editProfileModal.style.setProperty('--embed-modal-center-y', `${Math.round(centerY)}px`);
+      editProfileModal.style.setProperty('--embed-modal-overlay-height', `${Math.round(overlayHeight)}px`);
+      editProfileModal.style.setProperty('--embed-modal-max-height', `${Math.round(maxHeight)}px`);
+    } catch (error) {
+      // ignore cross-window measurement failures
+    }
+  }
+
+  function attachEditProfileModalViewportSync() {
+    if (!isEmbeddedShell || modalViewportSyncAttached) return;
+    try {
+      window.parent?.addEventListener('scroll', syncEditProfileModalViewportPosition, { passive: true });
+      window.parent?.addEventListener('resize', syncEditProfileModalViewportPosition);
+      window.addEventListener('resize', syncEditProfileModalViewportPosition);
+      modalViewportSyncAttached = true;
+    } catch (error) {
+      // ignore cross-window listener failures
+    }
+  }
+
+  function detachEditProfileModalViewportSync() {
+    if (!modalViewportSyncAttached) return;
+    try {
+      window.parent?.removeEventListener('scroll', syncEditProfileModalViewportPosition);
+      window.parent?.removeEventListener('resize', syncEditProfileModalViewportPosition);
+    } catch (error) {
+      // ignore cross-window listener failures
+    }
+    window.removeEventListener('resize', syncEditProfileModalViewportPosition);
+    modalViewportSyncAttached = false;
+  }
+
+  function toggleParentScrollLock(lock) {
+    if (!isEmbeddedShell) return;
+    try {
+      const parentDoc = window.parent?.document;
+      if (!parentDoc?.body || !parentDoc?.documentElement) return;
+      if (lock) {
+        if (!parentScrollLockState) {
+          parentScrollLockState = {
+            bodyOverflow: parentDoc.body.style.overflow,
+            htmlOverflow: parentDoc.documentElement.style.overflow
+          };
+        }
+        parentDoc.body.style.overflow = 'hidden';
+        parentDoc.documentElement.style.overflow = 'hidden';
+        return;
+      }
+      if (!parentScrollLockState) return;
+      parentDoc.body.style.overflow = parentScrollLockState.bodyOverflow;
+      parentDoc.documentElement.style.overflow = parentScrollLockState.htmlOverflow;
+      parentScrollLockState = null;
+    } catch (error) {
+      // ignore cross-window style failures
+    }
+  }
+
+  function resetAvatarUploadState() {
+    saveProfileBtn.disabled = false;
+    uploadAvatarBtn.disabled = false;
+    clearAvatarBtn.disabled = false;
+  }
+
+  function syncAvatarUploadPreview() {
+    renderAvatarSurface(editAvatarPreview, {
+      avatarUrl: pendingAvatarUrl,
+      avatarText: currentProfile?.avatarText,
+      username: currentProfile?.username
+    });
+  }
+
+  function toggleEditProfileModal(show) {
+    editProfileModal.classList.toggle('show', !!show);
+    document.body.style.overflow = show ? 'hidden' : '';
+    if (show) {
+      attachEditProfileModalViewportSync();
+      toggleParentScrollLock(true);
+      syncEditProfileModalViewportPosition();
+      requestAnimationFrame(syncEditProfileModalViewportPosition);
+      return;
+    }
+    toggleParentScrollLock(false);
+    detachEditProfileModalViewportSync();
+    editProfileModal.style.removeProperty('--embed-modal-center-y');
+    editProfileModal.style.removeProperty('--embed-modal-overlay-height');
+    editProfileModal.style.removeProperty('--embed-modal-max-height');
+  }
+
+  function syncBioCount() {
+    const length = String(editBioInput.value || '').length;
+    bioCount.textContent = String(length);
+    bioCounter.classList.toggle('warn', length >= 180);
+  }
+
+  function renderProfileAvatar(data) {
+    renderAvatarSurface(avatarBadge, data);
+  }
+
+  function renderAvatarSurface(element, data = {}) {
+    if (!element) return;
+    if (window.SiteAvatar?.apply) {
+      SiteAvatar.apply(element, data);
+      return;
+    }
+    const avatarUrl = normalizeImageUrl(data.avatarUrl);
+    if (avatarUrl) {
+      element.innerHTML = `<img class="profile-avatar-img" src="${escapeAttr(avatarUrl)}" alt="${escapeAttr((data.username || '用户') + '头像')}">`;
+      element.style.background = '#eef5ff';
+      return;
+    }
+    element.textContent = (data.avatarText || (data.username || 'U').charAt(0) || 'U').toUpperCase();
+    element.style.background = '#1e80ff';
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+    document.querySelectorAll('.panel').forEach(panel => {
+      panel.style.display = panel.id === `panel-${tab}` ? 'block' : 'none';
+    });
+    if (tab === 'blogs') {
+      if (!blogsLoaded && !blogsLoading && !allBlogs.length) {
+        resetAndLoadUserBlogs();
+      } else {
+        renderBlogList();
+        requestBlogMasonryLayout();
+      }
+      return;
+    }
+    if (tab === 'favorites') {
+      if (!favoritesLoaded && !favoritesLoading && !favoriteBlogs.length) {
+        resetAndLoadFavoriteBlogs();
+      } else {
+        renderFavoriteBlogList();
+        requestFavoritesMasonryLayout();
+      }
+      return;
+    }
+    if (tab === 'likes') {
+      if (!likesLoaded && !likesLoading && !likedBlogs.length) {
+        resetAndLoadLikedBlogs();
+      } else {
+        renderLikedBlogList();
+        requestLikesMasonryLayout();
+      }
+    }
+  }
+
+  function setupBlogInfiniteScroll() {
+    if (!blogScrollSentinel || typeof IntersectionObserver === 'undefined') return;
+    blogObserver = new IntersectionObserver(entries => {
+      if (!entries[0]?.isIntersecting) return;
+      if (!isBlogsTabActive() || blogsLoading || !blogsLoaded || !blogHasMore) return;
+      loadUserBlogs(false, blogQueryToken);
+    }, { threshold: 0.1 });
+    blogObserver.observe(blogScrollSentinel);
+  }
+
+  function isBlogsTabActive() {
+    const panel = document.getElementById('panel-blogs');
+    return !!panel && panel.style.display !== 'none';
+  }
+
+  function setupLikesInfiniteScroll() {
+    if (!likesScrollSentinel || typeof IntersectionObserver === 'undefined') return;
+    likesObserver = new IntersectionObserver(entries => {
+      if (!entries[0]?.isIntersecting) return;
+      if (!isLikesTabActive() || likesLoading || !likesLoaded || !likesHasMore) return;
+      loadLikedBlogs(false, likesQueryToken);
+    }, { threshold: 0.1 });
+    likesObserver.observe(likesScrollSentinel);
+  }
+
+  function setupFavoritesInfiniteScroll() {
+    if (!favoritesScrollSentinel || typeof IntersectionObserver === 'undefined') return;
+    favoritesObserver = new IntersectionObserver(entries => {
+      if (!entries[0]?.isIntersecting) return;
+      if (!isFavoritesTabActive() || favoritesLoading || !favoritesLoaded || !favoritesHasMore) return;
+      loadFavoriteBlogs(false, favoritesQueryToken);
+    }, { threshold: 0.1 });
+    favoritesObserver.observe(favoritesScrollSentinel);
+  }
+
+  function isFavoritesTabActive() {
+    const panel = document.getElementById('panel-favorites');
+    return !!panel && panel.style.display !== 'none';
+  }
+
+  function isLikesTabActive() {
+    const panel = document.getElementById('panel-likes');
+    return !!panel && panel.style.display !== 'none';
+  }
+
+  function resetAndLoadUserBlogs() {
+    if (!isBlogsTabActive()) {
+      blogsLoaded = false;
+      blogCursor = '';
+      blogTotal = 0;
+      blogHasMore = true;
+      allBlogs = [];
+      return;
+    }
+    if (blogsLoading) {
+      pendingBlogReset = true;
+      blogQueryToken += 1;
+      return;
+    }
+    pendingBlogReset = false;
+    blogQueryToken += 1;
+    loadUserBlogs(true, blogQueryToken);
+  }
+
+  function buildUserBlogUrl() {
+    const query = new URLSearchParams();
+    if (pid) query.set('userId', pid);
+    query.set('size', String(BLOG_PAGE_SIZE));
+    if (blogCursor) query.set('cursor', blogCursor);
+    if (blogSort && blogSort !== 'latest') query.set('sort', blogSort);
+    if (blogKeyword) query.set('keyword', blogKeyword);
+    return `/blog/user?${query.toString()}`;
+  }
+
+  function setBlogLoadState(text = '') {
+    blogLoadState.textContent = text;
+    blogLoadState.style.display = text ? 'block' : 'none';
+  }
+
+  function setLikesLoadState(text = '') {
+    likesLoadState.textContent = text;
+    likesLoadState.style.display = text ? 'block' : 'none';
+  }
+
+  function setFavoritesLoadState(text = '') {
+    favoritesLoadState.textContent = text;
+    favoritesLoadState.style.display = text ? 'block' : 'none';
+  }
+
+  function resetBlogLoadingView() {
+    blogsLoaded = false;
+    blogCursor = '';
+    blogTotal = 0;
+    blogHasMore = true;
+    allBlogs = [];
+    blogGrid.innerHTML = '';
+    blogGrid.style.display = 'none';
+    blogTools.style.display = 'none';
+    blogPlaceholder.style.display = 'block';
+    blogPlaceholder.textContent = '博客内容加载中，请稍候…';
+    blogResultCount.textContent = '';
+    updateTabCounts();
+    setBlogLoadState('');
+  }
+
+  function resetLikesLoadingView() {
+    likesLoaded = false;
+    likesCursor = '';
+    likesTotal = 0;
+    likesHasMore = true;
+    likedBlogs = [];
+    likesGrid.innerHTML = '';
+    likesGrid.style.display = 'none';
+    likesTools.style.display = 'none';
+    likesPlaceholder.style.display = 'block';
+    likesPlaceholder.textContent = '点赞记录加载中，请稍候…';
+    likesResultCount.textContent = '';
+    updateTabCounts();
+    setLikesLoadState('');
+  }
+
+  function resetFavoritesLoadingView() {
+    favoritesLoaded = false;
+    favoritesCursor = '';
+    favoritesTotal = 0;
+    favoritesHasMore = true;
+    favoriteBlogs = [];
+    favoritesGrid.innerHTML = '';
+    favoritesGrid.style.display = 'none';
+    favoritesTools.style.display = 'none';
+    favoritesPlaceholder.style.display = 'block';
+    favoritesPlaceholder.textContent = '收藏记录加载中，请稍候…';
+    favoritesResultCount.textContent = '';
+    updateTabCounts();
+    setFavoritesLoadState('');
+  }
+
+  async function loadUserBlogs(reset = false, requestToken = blogQueryToken) {
+    if (blogsLoading) return;
+    if (!reset && (!blogHasMore || !isBlogsTabActive())) return;
+    if (reset) {
+      resetBlogLoadingView();
+    } else if (allBlogs.length) {
+      setBlogLoadState('加载更多中…');
+    } else {
+      blogPlaceholder.style.display = 'block';
+      blogPlaceholder.textContent = '博客内容加载中，请稍候…';
+    }
+    blogsLoading = true;
+    if (reset) blogCursor = '';
+    const res = await request(buildUserBlogUrl());
+    blogsLoading = false;
+    if (requestToken !== blogQueryToken) {
+      if (pendingBlogReset) {
+        pendingBlogReset = false;
+        resetAndLoadUserBlogs();
+      }
+      return;
+    }
+    if (isUnauthorized(res)) {
+      renderBlogLoginRequired();
+      redirectToLogin();
+      return;
+    }
+    if (res.code !== 0 || !res.data || !Array.isArray(res.data.list)) {
+      if (!allBlogs.length) {
+        blogPlaceholder.style.display = 'block';
+        blogPlaceholder.textContent = res.message || '加载博客失败，请稍后再试';
+        blogGrid.style.display = 'none';
+        setBlogLoadState('');
+      } else {
+        setBlogLoadState(res.message || '加载失败，请稍后重试');
+      }
+      return;
+    }
+    const pageData = res.data;
+    const nextList = Array.isArray(pageData.list) ? pageData.list : [];
+    blogTotal = Math.max(0, Number(pageData.total || 0));
+    blogHasMore = !!pageData.hasMore;
+    blogCursor = blogHasMore && pageData.nextCursor ? String(pageData.nextCursor) : '';
+    allBlogs = mergeBlogs(reset ? [] : allBlogs, nextList);
+    blogsLoaded = true;
+    renderBlogList();
+    if (pendingBlogReset) {
+      pendingBlogReset = false;
+      resetAndLoadUserBlogs();
+    }
+  }
+
+  function resetAndLoadLikedBlogs() {
+    if (!isLikesTabActive()) {
+      likesLoaded = false;
+      likesCursor = '';
+      likesTotal = 0;
+      likesHasMore = true;
+      likedBlogs = [];
+      return;
+    }
+    if (likesLoading) {
+      pendingLikesReset = true;
+      likesQueryToken += 1;
+      return;
+    }
+    pendingLikesReset = false;
+    likesQueryToken += 1;
+    loadLikedBlogs(true, likesQueryToken);
+  }
+
+  function resetAndLoadFavoriteBlogs() {
+    if (!isFavoritesTabActive()) {
+      favoritesLoaded = false;
+      favoritesCursor = '';
+      favoritesTotal = 0;
+      favoritesHasMore = true;
+      favoriteBlogs = [];
+      return;
+    }
+    if (favoritesLoading) {
+      pendingFavoritesReset = true;
+      favoritesQueryToken += 1;
+      return;
+    }
+    pendingFavoritesReset = false;
+    favoritesQueryToken += 1;
+    loadFavoriteBlogs(true, favoritesQueryToken);
+  }
+
+  function buildFavoriteBlogUrl() {
+    const query = new URLSearchParams();
+    if (pid) query.set('userId', pid);
+    query.set('size', String(BLOG_PAGE_SIZE));
+    if (favoritesCursor) query.set('cursor', favoritesCursor);
+    return `/favorite/user?${query.toString()}`;
+  }
+
+  async function loadFavoriteBlogs(reset = false, requestToken = favoritesQueryToken) {
+    if (favoritesLoading) return;
+    if (!reset && (!favoritesHasMore || !isFavoritesTabActive())) return;
+    if (reset) {
+      resetFavoritesLoadingView();
+    } else if (favoriteBlogs.length) {
+      setFavoritesLoadState('加载更多中…');
+    } else {
+      favoritesPlaceholder.style.display = 'block';
+      favoritesPlaceholder.textContent = '收藏记录加载中，请稍候…';
+    }
+    favoritesLoading = true;
+    if (reset) favoritesCursor = '';
+    const res = await request(buildFavoriteBlogUrl());
+    favoritesLoading = false;
+    if (requestToken !== favoritesQueryToken) {
+      if (pendingFavoritesReset) {
+        pendingFavoritesReset = false;
+        resetAndLoadFavoriteBlogs();
+      }
+      return;
+    }
+    if (isUnauthorized(res)) {
+      renderFavoritesLoginRequired();
+      redirectToLogin();
+      return;
+    }
+    if (res.code !== 0 || !res.data || !Array.isArray(res.data.list)) {
+      if (!favoriteBlogs.length) {
+        favoritesPlaceholder.style.display = 'block';
+        favoritesPlaceholder.textContent = res.message || '加载收藏记录失败，请稍后再试';
+        favoritesGrid.style.display = 'none';
+        setFavoritesLoadState('');
+      } else {
+        setFavoritesLoadState(res.message || '加载失败，请稍后重试');
+      }
+      return;
+    }
+    const pageData = res.data;
+    const nextList = Array.isArray(pageData.list) ? pageData.list : [];
+    favoritesTotal = Math.max(0, Number(pageData.total || 0));
+    favoritesHasMore = !!pageData.hasMore;
+    favoritesCursor = favoritesHasMore && pageData.nextCursor ? String(pageData.nextCursor) : '';
+    favoriteBlogs = mergeBlogs(reset ? [] : favoriteBlogs, nextList);
+    favoritesLoaded = true;
+    renderFavoriteBlogList();
+    if (pendingFavoritesReset) {
+      pendingFavoritesReset = false;
+      resetAndLoadFavoriteBlogs();
+    }
+  }
+
+  function buildLikedBlogUrl() {
+    const query = new URLSearchParams();
+    if (pid) query.set('userId', pid);
+    query.set('size', String(BLOG_PAGE_SIZE));
+    if (likesCursor) query.set('cursor', likesCursor);
+    return `/thumb/user?${query.toString()}`;
+  }
+
+  async function loadLikedBlogs(reset = false, requestToken = likesQueryToken) {
+    if (likesLoading) return;
+    if (!reset && (!likesHasMore || !isLikesTabActive())) return;
+    if (reset) {
+      resetLikesLoadingView();
+    } else if (likedBlogs.length) {
+      setLikesLoadState('加载更多中…');
+    } else {
+      likesPlaceholder.style.display = 'block';
+      likesPlaceholder.textContent = '点赞记录加载中，请稍候…';
+    }
+    likesLoading = true;
+    if (reset) likesCursor = '';
+    const res = await request(buildLikedBlogUrl());
+    likesLoading = false;
+    if (requestToken !== likesQueryToken) {
+      if (pendingLikesReset) {
+        pendingLikesReset = false;
+        resetAndLoadLikedBlogs();
+      }
+      return;
+    }
+    if (isUnauthorized(res)) {
+      renderLikesLoginRequired();
+      redirectToLogin();
+      return;
+    }
+    if (res.code !== 0 || !res.data || !Array.isArray(res.data.list)) {
+      if (!likedBlogs.length) {
+        likesPlaceholder.style.display = 'block';
+        likesPlaceholder.textContent = res.message || '加载点赞记录失败，请稍后再试';
+        likesGrid.style.display = 'none';
+        setLikesLoadState('');
+      } else {
+        setLikesLoadState(res.message || '加载失败，请稍后重试');
+      }
+      return;
+    }
+    const pageData = res.data;
+    const nextList = Array.isArray(pageData.list) ? pageData.list : [];
+    likesTotal = Math.max(0, Number(pageData.total || 0));
+    likesHasMore = !!pageData.hasMore;
+    likesCursor = likesHasMore && pageData.nextCursor ? String(pageData.nextCursor) : '';
+    likedBlogs = mergeBlogs(reset ? [] : likedBlogs, nextList);
+    likesLoaded = true;
+    renderLikedBlogList();
+    if (pendingLikesReset) {
+      pendingLikesReset = false;
+      resetAndLoadLikedBlogs();
+    }
+  }
+
+  function setBlogSort(sort) {
+    if (!sort || blogSort === sort) return;
+    blogSort = sort;
+    document.querySelectorAll('.blog-filter-btn[data-sort]').forEach(btn => btn.classList.toggle('active', btn.dataset.sort === sort));
+    resetAndLoadUserBlogs();
+  }
+
+  function setBlogKeyword(keyword) {
+    const normalized = String(keyword || '').trim();
+    clearTimeout(blogKeywordDebounceTimer);
+    blogKeywordDebounceTimer = setTimeout(() => {
+      if (blogKeyword === normalized && (blogsLoaded || blogsLoading)) return;
+      blogKeyword = normalized;
+      resetAndLoadUserBlogs();
+    }, 280);
+  }
+
+  function mergeBlogs(existing, incoming) {
+    const merged = [];
+    const seen = new Set();
+    [...(existing || []), ...(incoming || [])].forEach(blog => {
+      const id = blog?.id;
+      if (id == null || seen.has(id)) return;
+      seen.add(id);
+      merged.push(blog);
+    });
+    return merged;
+  }
+
+  function renderBlogList() {
+    const hasAnyProfileBlogs = Number(currentProfile?.blogCount ?? currentProfile?.notesCount ?? 0) > 0;
+    blogResultCount.textContent = '';
+    updateTabCounts();
+    if (!allBlogs.length) {
+      blogTools.style.display = (hasAnyProfileBlogs || !!blogKeyword) ? 'flex' : 'none';
+      blogGrid.style.display = 'none';
+      blogPlaceholder.style.display = 'block';
+      blogPlaceholder.textContent = blogKeyword ? '没有找到符合条件的博客' : '暂时还没有发布博客';
+      setBlogLoadState('');
+      return;
+    }
+    blogTools.style.display = 'flex';
+    blogGrid.innerHTML = allBlogs.map(blog => renderBlogCard(blog, profileCanManage)).join('');
+    blogGrid.querySelectorAll('.blog-cover').forEach(img => {
+      if (img.complete) {
+        handleBlogCoverLoad(img);
+        return;
+      }
+      img.addEventListener('load', () => handleBlogCoverLoad(img), { once: true });
+      img.addEventListener('error', requestBlogMasonryLayout, { once: true });
+    });
+    blogGrid.style.display = 'grid';
+    blogPlaceholder.style.display = 'none';
+    setBlogLoadState(blogHasMore ? '继续下滑加载更多' : '已经到底啦');
+    requestBlogMasonryLayout();
+    scheduleEmbedHeightReport();
+  }
+
+  function renderLikedBlogList() {
+    likesResultCount.textContent = '';
+    updateTabCounts();
+    if (!likedBlogs.length) {
+      likesTools.style.display = Number(currentProfile?.likesGivenCount || 0) > 0 ? 'flex' : 'none';
+      likesGrid.style.display = 'none';
+      likesPlaceholder.style.display = 'block';
+      likesPlaceholder.textContent = '暂时还没有点赞记录';
+      setLikesLoadState('');
+      return;
+    }
+    likesTools.style.display = 'flex';
+    likesGrid.innerHTML = likedBlogs.map(blog => renderBlogCard(blog, false, { recordLabel: formatThumbTime(blog.thumbTime) })).join('');
+    likesGrid.querySelectorAll('.blog-cover').forEach(img => {
+      if (img.complete) {
+        handleBlogCoverLoad(img);
+        return;
+      }
+      img.addEventListener('load', () => handleBlogCoverLoad(img), { once: true });
+      img.addEventListener('error', requestLikesMasonryLayout, { once: true });
+    });
+    likesGrid.style.display = 'grid';
+    likesPlaceholder.style.display = 'none';
+    setLikesLoadState(likesHasMore ? '继续下滑加载更多' : '已经到底啦');
+    requestLikesMasonryLayout();
+    scheduleEmbedHeightReport();
+  }
+
+  function renderFavoriteBlogList() {
+    favoritesResultCount.textContent = '';
+    updateTabCounts();
+    if (!favoriteBlogs.length) {
+      favoritesTools.style.display = Number(currentProfile?.notesCount || 0) > 0 ? 'flex' : 'none';
+      favoritesGrid.style.display = 'none';
+      favoritesPlaceholder.style.display = 'block';
+      favoritesPlaceholder.textContent = '暂时还没有收藏记录';
+      setFavoritesLoadState('');
+      return;
+    }
+    favoritesTools.style.display = 'flex';
+    favoritesGrid.innerHTML = favoriteBlogs.map(blog => renderBlogCard(blog, false, { recordLabel: formatFavoriteTime(blog.favoriteTime) })).join('');
+    favoritesGrid.querySelectorAll('.blog-cover').forEach(img => {
+      if (img.complete) {
+        handleBlogCoverLoad(img);
+        return;
+      }
+      img.addEventListener('load', () => handleBlogCoverLoad(img), { once: true });
+      img.addEventListener('error', requestFavoritesMasonryLayout, { once: true });
+    });
+    favoritesGrid.style.display = 'grid';
+    favoritesPlaceholder.style.display = 'none';
+    setFavoritesLoadState(favoritesHasMore ? '继续下滑加载更多' : '已经到底啦');
+    requestFavoritesMasonryLayout();
+    scheduleEmbedHeightReport();
+  }
+
+  function isSelfProfileView() {
+    return !!(currentProfile?.self || (viewerId != null && currentProfile?.userId != null && String(viewerId) === String(currentProfile.userId)));
+  }
+
+  function updateProfileBlogCollections(blogId, hasThumb, thumbCount) {
+    const blogIdStr = String(blogId);
+    const apply = list => (list || []).map(item => {
+      if (String(item?.id) !== blogIdStr) return item;
+      return { ...item, hasThumb: !!hasThumb, thumbCount: Number(thumbCount || 0) };
+    });
+    allBlogs = apply(allBlogs);
+    favoriteBlogs = apply(favoriteBlogs);
+    likedBlogs = apply(likedBlogs);
+  }
+
+  function findProfileBlogSnapshot(blogId) {
+    const blogIdStr = String(blogId);
+    return [...allBlogs, ...favoriteBlogs, ...likedBlogs].find(item => String(item?.id) === blogIdStr) || null;
+  }
+
+  function syncOwnLikedCollection(blogId, shouldExist, snapshot) {
+    if (!isSelfProfileView() || !likesLoaded) {
+      return;
+    }
+    const blogIdStr = String(blogId);
+    if (shouldExist) {
+      if (!likedBlogs.some(item => String(item?.id) === blogIdStr) && snapshot) {
+        likedBlogs = [{ ...snapshot, hasThumb: true, thumbTime: new Date().toISOString() }, ...likedBlogs];
+        likesTotal += 1;
+      }
+      updateTabCounts();
+      return;
+    }
+    const next = likedBlogs.filter(item => String(item?.id) !== blogIdStr);
+    if (next.length !== likedBlogs.length) {
+      likedBlogs = next;
+      likesTotal = Math.max(0, likesTotal - 1);
+    }
+    updateTabCounts();
+  }
+
+  function updateProfileBlogLikeDom(blogId, hasThumb, thumbCount) {
+    const blogIdStr = String(blogId);
+    document.querySelectorAll(`[data-blog-like="${blogIdStr}"]`).forEach(button => {
+      button.classList.toggle('liked', !!hasThumb);
+      button.title = hasThumb ? '取消点赞' : '点赞';
+    });
+    document.querySelectorAll(`[data-blog-like-count="${blogIdStr}"]`).forEach(node => {
+      node.textContent = formatNumber(thumbCount || 0);
+    });
+  }
+
+  async function toggleProfileBlogThumb(event, blogId) {
+    event?.stopPropagation?.();
+    const blogIdStr = String(blogId);
+    if (profileThumbPending.has(blogIdStr)) {
+      return;
+    }
+    const snapshot = findProfileBlogSnapshot(blogId);
+    if (!viewerId) {
+      redirectToLogin();
+      return;
+    }
+    if (!snapshot) {
+      showToast('文章状态已变化，正在刷新列表');
+      if (isBlogsTabActive()) await loadUserBlogs(true, ++blogQueryToken);
+      else if (isFavoritesTabActive()) await loadFavoriteBlogs(true, ++favoritesQueryToken);
+      else if (isLikesTabActive()) await loadLikedBlogs(true, ++likesQueryToken);
+      return;
+    }
+    const previousCount = Number(snapshot.thumbCount || 0);
+    const wasLiked = !!snapshot.hasThumb;
+    const nextLiked = !wasLiked;
+    const nextCount = Math.max(0, previousCount + (wasLiked ? -1 : 1));
+    updateProfileBlogCollections(blogIdStr, nextLiked, nextCount);
+    updateProfileBlogLikeDom(blogIdStr, nextLiked, nextCount);
+
+    profileThumbPending.add(blogIdStr);
+    try {
+      const res = await request(wasLiked ? '/thumb/undo' : '/thumb/do', {
+        method: 'POST',
+        body: JSON.stringify({ blogId: blogIdStr })
+      });
+
+      if (isUnauthorized(res)) {
+        updateProfileBlogCollections(blogIdStr, wasLiked, previousCount);
+        updateProfileBlogLikeDom(blogIdStr, wasLiked, previousCount);
+        redirectToLogin();
+        return;
+      }
+
+      if (res.code !== 0 || !res.data) {
+        updateProfileBlogCollections(blogIdStr, wasLiked, previousCount);
+        updateProfileBlogLikeDom(blogIdStr, wasLiked, previousCount);
+        showToast(res.message || '操作失败');
+        return;
+      }
+
+      const finalHasThumb = !!res.data.hasThumb;
+      const finalThumbCount = Number(res.data.thumbCount || 0);
+      updateProfileBlogCollections(blogIdStr, finalHasThumb, finalThumbCount);
+      syncOwnLikedCollection(blogIdStr, finalHasThumb, { ...snapshot, hasThumb: finalHasThumb, thumbCount: finalThumbCount });
+      updateProfileBlogLikeDom(blogIdStr, finalHasThumb, finalThumbCount);
+
+      if (isLikesTabActive() && isSelfProfileView() && !finalHasThumb) {
+        renderLikedBlogList();
+        return;
+      }
+      if (isBlogsTabActive()) {
+        requestBlogMasonryLayout();
+      } else if (isFavoritesTabActive()) {
+        requestFavoritesMasonryLayout();
+      } else if (isLikesTabActive()) {
+        requestLikesMasonryLayout();
+      }
+    } finally {
+      profileThumbPending.delete(blogIdStr);
+    }
+  }
+
+  function requestBlogMasonryLayout() {
+    if (blogGrid && !blogGrid.classList.contains('masonry-ready')) {
+      blogGrid.classList.add('masonry-ready');
+    }
+    if (blogMasonryRaf) cancelAnimationFrame(blogMasonryRaf);
+    blogMasonryRaf = requestAnimationFrame(layoutBlogMasonry);
+  }
+
+  function layoutBlogMasonry() {
+    blogMasonryRaf = 0;
+    if (!blogGrid || blogGrid.style.display === 'none') return;
+    const styles = getComputedStyle(blogGrid);
+    const rowSize = parseFloat(styles.getPropertyValue('--masonry-row')) || 8;
+    const rowGap = parseFloat(styles.rowGap) || 24;
+    blogGrid.querySelectorAll('.blog-card').forEach(card => {
+      const cardHeight = card.getBoundingClientRect().height;
+      const span = Math.max(1, Math.ceil((cardHeight + rowGap) / (rowSize + rowGap)));
+      card.style.gridRowEnd = `span ${span}`;
+    });
+  }
+
+  function requestLikesMasonryLayout() {
+    if (likesGrid && !likesGrid.classList.contains('masonry-ready')) {
+      likesGrid.classList.add('masonry-ready');
+    }
+    if (likesMasonryRaf) cancelAnimationFrame(likesMasonryRaf);
+    likesMasonryRaf = requestAnimationFrame(layoutLikesMasonry);
+  }
+
+  function layoutLikesMasonry() {
+    likesMasonryRaf = 0;
+    if (!likesGrid || likesGrid.style.display === 'none') return;
+    const styles = getComputedStyle(likesGrid);
+    const rowSize = parseFloat(styles.getPropertyValue('--masonry-row')) || 8;
+    const rowGap = parseFloat(styles.rowGap) || 24;
+    likesGrid.querySelectorAll('.blog-card').forEach(card => {
+      const cardHeight = card.getBoundingClientRect().height;
+      const span = Math.max(1, Math.ceil((cardHeight + rowGap) / (rowSize + rowGap)));
+      card.style.gridRowEnd = `span ${span}`;
+    });
+  }
+
+  function requestFavoritesMasonryLayout() {
+    if (favoritesGrid && !favoritesGrid.classList.contains('masonry-ready')) {
+      favoritesGrid.classList.add('masonry-ready');
+    }
+    if (favoritesMasonryRaf) cancelAnimationFrame(favoritesMasonryRaf);
+    favoritesMasonryRaf = requestAnimationFrame(layoutFavoritesMasonry);
+  }
+
+  function layoutFavoritesMasonry() {
+    favoritesMasonryRaf = 0;
+    if (!favoritesGrid || favoritesGrid.style.display === 'none') return;
+    const styles = getComputedStyle(favoritesGrid);
+    const rowSize = parseFloat(styles.getPropertyValue('--masonry-row')) || 8;
+    const rowGap = parseFloat(styles.rowGap) || 24;
+    favoritesGrid.querySelectorAll('.blog-card').forEach(card => {
+      const cardHeight = card.getBoundingClientRect().height;
+      const span = Math.max(1, Math.ceil((cardHeight + rowGap) / (rowSize + rowGap)));
+      card.style.gridRowEnd = `span ${span}`;
+    });
+  }
+
+  function renderDefaultMediaFallback(containerClass, tipText = '封面加载失败') {
+    const tip = escapeHtml(tipText || '封面加载失败');
+    return `
+      <div class="${containerClass} media-fallback" aria-hidden="true">
+        <div class="media-fallback-frame">
+          <div class="media-fallback-art">
+            <span class="media-fallback-line media-fallback-line-lg"></span>
+            <span class="media-fallback-line media-fallback-line-md"></span>
+            <span class="media-fallback-line media-fallback-line-sm"></span>
+          </div>
+          <div class="media-fallback-tip">${tip}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderBlogCard(blog, canManage = false, options = {}) {
+    const cover = normalizeCoverUrl(blog.coverImg);
+    const blogId = encodeURIComponent(blog.id);
+    const blogIdRaw = blog.id;
+    const blogIdAttr = escapeAttr(String(blogIdRaw));
+    const titlePlain = stripTags(blog.title || '未命名博客');
+    const titleHtml = escapeHtml(titlePlain);
+    const safeAuthor = escapeHtml(blog.authorName || '匿名');
+    const authorInitial = (blog.authorName || titlePlain || 'U').trim().charAt(0).toUpperCase() || 'U';
+    const authorAvatar = window.SiteAvatar?.renderHtml
+      ? SiteAvatar.renderHtml('avatar', { authorAvatarUrl: blog.authorAvatarUrl, authorName: blog.authorName, avatarText: authorInitial })
+      : `<div class="avatar">${authorInitial}</div>`;
+    const likes = formatNumber(blog.thumbCount || 0);
+    const hasThumb = !!blog.hasThumb;
+    const created = blog.createTime ? new Date(blog.createTime).toLocaleDateString('zh-CN') : '';
+    const recordLabel = options?.recordLabel ? `<div class="record-badge">${escapeHtml(options.recordLabel)}</div>` : '';
+    const hasCover = !!cover;
+    const likeButton = `
+      <button class="card-like ${hasThumb ? 'liked' : ''}" type="button" data-blog-like="${blogIdAttr}" title="${hasThumb ? '取消点赞' : '点赞'}" onclick="toggleProfileBlogThumb(event,'${blogIdRaw}')">
+        ${renderRoundedHeartIcon('heart')}
+        <span class="cover-like-count" data-blog-like-count="${blogIdAttr}">${likes}</span>
+      </button>`;
+    const coverHtml = hasCover
+      ? `
+        <div class="card-media blog-cover-shell">
+          <img class="card-cover blog-cover" src="${escapeAttr(cover)}" alt="${escapeAttr((blog.title || '博客') + '封面')}" loading="lazy" decoding="async" onload="handleBlogCoverLoad(this)" onerror="handleBlogCoverError(this)">
+          ${renderDefaultMediaFallback('card-media-fallback blog-cover-fallback')}
+        </div>`
+      : `
+        <div class="card-media blog-cover-shell text-card no-cover">
+          <div class="card-text-shell blog-text-shell">
+            <span class="card-text-quote top">“</span>
+            <div class="card-text-content">
+              <div class="card-text-title blog-text-title">${titleHtml}</div>
+            </div>
+            <span class="card-text-quote bottom">—</span>
+          </div>
+        </div>`;
+    const contentHtml = `${recordLabel}${hasCover ? `<div class="card-title">${titleHtml}</div>` : ''}`;
+    const openAction = isEmbeddedShell
+      ? `window.top.location.href='/blog.html?id=${blogId}'`
+      : `window.open('/blog.html?id=${blogId}','_blank')`;
+    return `
+      <article class="xhs-card blog-card ${hasCover ? '' : 'text-card'}" onclick="${openAction}">
+        ${coverHtml}
+        <div class="profile-card-content">
+          ${contentHtml}
+        </div>
+        <div class="card-footer">
+          <div class="card-author">
+            ${authorAvatar}
+            <div class="card-author-copy">
+              <span class="card-author-name">${safeAuthor}</span>
+              ${created ? `<span class="card-author-meta">${escapeHtml(created)}</span>` : ''}
+            </div>
+          </div>
+          ${likeButton}
+        </div>
+        ${canManage ? `
+        <div class="manage-btns">
+          <div class="btn-edit" onclick="event.stopPropagation(); editBlog('${blogIdRaw}')">编辑</div>
+          <div class="btn-del" onclick="event.stopPropagation(); deleteBlog('${blogIdRaw}')">删除</div>
+        </div>` : ''}
+      </article>`;
+  }
+
+  function renderRoundedHeartIcon(className = '') {
+    const classes = ['heart-icon-svg', className].filter(Boolean).join(' ');
+    return `<svg class="${classes}" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35Z"/></svg>`;
+  }
+
+  function renderProfileLoginRequired() {
+    profileCanManage = false;
+    profileCanEdit = false;
+    document.getElementById('profileCard').innerHTML = '<div class="placeholder" style="width:100%;font-size:18px;">请登录后查看个人信息。</div>';
+    scheduleEmbedHeightReport();
+  }
+
+  function renderBlogLoginRequired() {
+    profileCanManage = false;
+    profileCanEdit = false;
+    allBlogs = [];
+    blogCursor = '';
+    blogTotal = 0;
+    blogHasMore = false;
+    blogTools.style.display = 'none';
+    blogGrid.style.display = 'none';
+    blogPlaceholder.style.display = 'block';
+    blogPlaceholder.textContent = '请登录方能查看';
+    blogResultCount.textContent = '';
+    updateTabCounts();
+    setBlogLoadState('');
+    blogsLoaded = false;
+    scheduleEmbedHeightReport();
+  }
+
+  function renderLikesLoginRequired() {
+    likedBlogs = [];
+    likesCursor = '';
+    likesTotal = 0;
+    likesHasMore = false;
+    likesTools.style.display = 'none';
+    likesGrid.style.display = 'none';
+    likesPlaceholder.style.display = 'block';
+    likesPlaceholder.textContent = '请登录方能查看';
+    likesResultCount.textContent = '';
+    updateTabCounts();
+    setLikesLoadState('');
+    likesLoaded = false;
+    scheduleEmbedHeightReport();
+  }
+
+  function renderFavoritesLoginRequired() {
+    favoriteBlogs = [];
+    favoritesCursor = '';
+    favoritesTotal = 0;
+    favoritesHasMore = false;
+    favoritesTools.style.display = 'none';
+    favoritesGrid.style.display = 'none';
+    favoritesPlaceholder.style.display = 'block';
+    favoritesPlaceholder.textContent = '请登录方能查看';
+    favoritesResultCount.textContent = '';
+    updateTabCounts();
+    setFavoritesLoadState('');
+    favoritesLoaded = false;
+    scheduleEmbedHeightReport();
+  }
+
+  function updateTabCounts() {
+    if (tabBlogCount) {
+      const blogCount = blogsLoaded ? blogTotal : Number(currentProfile?.blogCount ?? blogTotal ?? 0);
+      tabBlogCount.textContent = formatNumber(blogCount);
+    }
+    if (tabFavoritesCount) {
+      const favoriteCount = favoritesLoaded ? favoritesTotal : Number(currentProfile?.notesCount ?? favoritesTotal ?? 0);
+      tabFavoritesCount.textContent = formatNumber(favoriteCount);
+    }
+    if (tabLikesCount) {
+      const likeCount = likesLoaded ? likesTotal : Number(currentProfile?.likesGivenCount ?? likesTotal ?? 0);
+      tabLikesCount.textContent = formatNumber(likeCount);
+    }
+  }
+
+  function editBlog(blogId) {
+    window.open(`/publish.html?id=${encodeURIComponent(blogId)}`, '_blank');
+  }
+
+  async function deleteBlog(blogId) {
+    if (!profileCanManage) return showToast('暂无权限');
+    if (!confirm('确定删除这篇博客吗？删除后无法恢复。')) return;
+    const res = await request(`/blog/delete?blogId=${encodeURIComponent(blogId)}`, { method: 'DELETE' });
+    if (isUnauthorized(res)) {
+      renderBlogLoginRequired();
+      showToast(res.message || '请先登录');
+      return;
+    }
+    if (res.code !== 0) {
+      showToast(res.message || '操作失败');
+      return;
+    }
+    showToast('删除成功');
+    if (currentProfile) {
+      const nextBlogCount = Math.max(0, Number(currentProfile.blogCount ?? currentProfile.notesCount ?? 0) - 1);
+      currentProfile.blogCount = nextBlogCount;
+      currentProfile.notesCount = nextBlogCount;
+      updateTabCounts();
+    }
+    resetAndLoadUserBlogs();
+  }
+
+  function isUnauthorized(res) {
+    return !!res && (res.httpStatus === 401 || res.code === 401);
+  }
+
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    setTimeout(() => toastEl.classList.remove('show'), 2200);
+  }
+
+  async function request(url, options = {}) {
+    try {
+      const response = await fetch(url, { credentials: 'include', headers: { 'Content-Type': 'application/json' }, ...options });
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (err) {
+        data = { code: -1, message: '响应解析失败' };
+      }
+      return { httpStatus: response.status, ...data };
+    } catch (err) {
+      return { httpStatus: 0, code: -1, message: '网络异常，请稍后重试' };
+    }
+  }
+
+  function formatNumber(num) {
+    const n = Number(num || 0);
+    if (n >= 10000) return (n / 10000).toFixed(1).replace(/\.0$/, '') + 'w';
+    return n.toLocaleString('zh-CN');
+  }
+
+  function stripTags(input) {
+    return String(input || '').replace(/<[^>]*>/g, ' ');
+  }
+
+  function buildTextExcerpt(content, fallbackText = '') {
+    const plain = stripTags(content || fallbackText || '').replace(/\s+/g, ' ').trim();
+    if (!plain) return '打开文章继续阅读完整内容。';
+    return plain.length > 56 ? `${plain.slice(0, 56)}…` : plain;
+  }
+
+  function formatAge(age) {
+    const value = Number(age);
+    return Number.isInteger(value) && value > 0 ? `${value} 岁` : '未填写';
+  }
+
+  function normalizeCoverUrl(url) {
+    return typeof url === 'string' ? url.trim() : '';
+  }
+
+  function normalizeImageUrl(url) {
+    return typeof url === 'string' ? url.trim() : '';
+  }
+
+  function handleBlogCoverLoad(img) {
+    const shell = img?.closest('.blog-cover-shell');
+    if (!shell) return;
+    shell.classList.remove('media-landscape');
+    const naturalWidth = Number(img.naturalWidth || 0);
+    const naturalHeight = Number(img.naturalHeight || 0);
+    if (naturalWidth && naturalHeight) {
+      shell.classList.toggle('media-landscape', naturalWidth / naturalHeight > AUTO_ADAPT_LANDSCAPE_RATIO);
+    }
+    if (shell.closest('#favoritesGrid')) {
+      requestFavoritesMasonryLayout();
+      return;
+    }
+    if (shell.closest('#likesGrid')) {
+      requestLikesMasonryLayout();
+      return;
+    }
+    requestBlogMasonryLayout();
+  }
+
+  function handleBlogCoverError(img) {
+    const shell = img?.closest('.blog-cover-shell');
+    if (shell) shell.classList.add('is-fallback');
+    if (shell?.closest('#favoritesGrid')) {
+      requestFavoritesMasonryLayout();
+      return;
+    }
+    if (shell?.closest('#likesGrid')) {
+      requestLikesMasonryLayout();
+      return;
+    }
+    requestBlogMasonryLayout();
+  }
+
+  function formatThumbTime(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return `点赞于 ${date.toLocaleDateString('zh-CN')}`;
+  }
+
+  function formatFavoriteTime(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return `收藏于 ${date.toLocaleDateString('zh-CN')}`;
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function escapeAttr(str) {
+    return escapeHtml(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+</script>
+</body>
+</html>
+

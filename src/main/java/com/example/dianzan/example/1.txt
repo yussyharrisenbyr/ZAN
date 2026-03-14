@@ -1,0 +1,118 @@
+package com.example.dianzan.example;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.ververica.cdc.connectors.mysql.source.MySqlSource;
+import com.ververica.cdc.debezium.JsonDebeziumDeserializationSchema;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import redis.clients.jedis.Jedis;
+
+public class BlogThumbSyncJob {
+
+    public static void main(String[] args) throws Exception {
+        // 1. 创建 Flink 执行环境 (自动识别是本地单机还是集群)
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        // 开启 Checkpoint (极其重要：保证挂了重启后，数据不丢不重)
+        env.enableCheckpointing(3000);
+
+        // 2. 配置 Flink CDC 监听数据源
+        MySqlSource<String> mySqlSource = MySqlSource.<String>builder()
+                .hostname("127.0.0.1") // 替换为你的 TiDB/MySQL IP
+                .port(3306)
+                .databaseList("dianzan_db") // 监听的数据库
+                .tableList("dianzan_db.blog") // 监听的表
+                .username("root")
+                .password("你的密码")
+                // 将底层的 Binlog 变更解析为标准的 JSON 格式
+                .deserializer(new JsonDebeziumDeserializationSchema())
+                .build();
+
+        // 3. 将数据源接入流水线
+        env.fromSource(mySqlSource, WatermarkStrategy.noWatermarks(), "MySQL Source")
+           // 4. 自定义 Sink：将解析后的数据写入 Redis
+           .addSink(new RedisThumbSink());
+
+        // 5. 启动流水线！
+        env.execute("Sync Blog Thumb Count to Redis");
+    }
+
+    /**
+     * 自定义 Redis Sink：控制数据如何写入 Redis
+     */
+    public static class RedisThumbSink extends RichSinkFunction<String> {
+        private transient Jedis jedis;
+
+        @Override
+        public void open(Configuration parameters) throws Exception {
+            // 初始化 Redis 连接 (在每个并行任务启动时执行一次)
+            jedis = new Jedis("127.0.0.1", 6379);
+            jedis.auth("你的Redis密码"); // 如果没有密码注释掉这行
+        }
+
+        @Override
+        public void invoke(String debeziumJson, Context context) throws Exception {
+            // 解析 Debezium 吐出的 JSON
+            JSONObject jsonObject = JSON.parseObject(debeziumJson);
+
+            // 获取操作类型：c(新增), u(更新), d(删除), r(全量读取)
+            String op = jsonObject.getString("op");
+
+            // 我们只关心更新操作(点赞数发生变化)和初始全量读取
+            if ("u".equals(op) || "r".equals(op) || "c".equals(op)) {
+                // "after" 里面存放的是修改后的最新那行数据
+                JSONObject after = jsonObject.getJSONObject("after");
+                if (after != null) {
+                    Long blogId = after.getLong("id");
+                    Integer thumbCount = after.getInteger("thumb_count");
+
+                    // 【核心操作】将最新点赞数写入 Redis
+                    String redisKey = "blog:thumb:" + blogId;
+                    jedis.set(redisKey, String.valueOf(thumbCount));
+
+                    // 进阶玩法：你甚至可以直接在这里操作 ZSet，把博客加进“全站热榜”
+                    // jedis.zadd("blog:hot:ranking", thumbCount, String.valueOf(blogId));
+
+                    System.out.println("成功同步缓存: " + redisKey + " -> " + thumbCount);
+                }
+            }
+        }
+
+        @Override
+        public void close() throws Exception {
+            // 关闭连接，释放资源
+            if (jedis != null) {
+                jedis.close();
+            }
+        }
+    }
+}
+
+source:
+type: mysql
+hostname: localhost
+port: 3306
+username: root
+password: 123456
+tables: app_db.\.*
+server-id: 5400-5404
+server-time-zone: UTC
+
+sink:
+type: doris
+fenodes: 127.0.0.1:8030
+username: root
+password: ""
+table.create.properties.light_schema_change: true
+table.create.properties.replication_num: 1
+
+pipeline:
+name: Sync MySQL Database to Doris
+parallelism: 2
+
+--add-opens java.base/java.lang=ALL-UNNAMED
+--add-opens java.base/java.util=ALL-UNNAMED
+--add-opens java.base/java.nio=ALL-UNNAMED
+--add-opens java.base/java.util.concurrent=ALL-UNNAMED

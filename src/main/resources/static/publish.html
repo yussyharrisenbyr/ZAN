@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>发布文章</title>
+  <link rel="stylesheet" href="/common-navbar.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #6366f1; --primary-hover: #4f46e5;
+      --bg: #f1f5f9; --card: #ffffff;
+      --text: #1e293b; --muted: #94a3b8; --border: #e2e8f0; --radius: 16px;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .container { max-width: 800px; margin: 0 auto; padding: calc(var(--navbar-height) + 40px) 16px 60px; }
+    .card {
+      background: var(--card); border-radius: var(--radius);
+      box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+      padding: 40px;
+    }
+    .card h1 { font-size: 22px; font-weight: 800; margin-bottom: 28px; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 7px; }
+    .field input, .field textarea {
+      width: 100%; padding: 11px 14px; border: 1.5px solid var(--border);
+      border-radius: 10px; font-size: 15px; outline: none; font-family: inherit;
+      transition: border-color .2s;
+    }
+    .field input:focus, .field textarea:focus { border-color: var(--primary); }
+    .field textarea { min-height: 320px; resize: vertical; line-height: 1.7; }
+    .cover-preview {
+      width: 100%;
+      max-height: min(52vh, 320px);
+      aspect-ratio: 16 / 10;
+      object-fit: contain;
+      padding: 12px;
+      border-radius: 12px;
+      margin-top: 10px;
+      display: none;
+      border: 1px solid var(--border);
+      background: linear-gradient(160deg, #f8fafc 0%, #eef2ff 100%);
+    }
+    .cover-upload-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .btn-secondary {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-secondary:disabled { opacity: .6; cursor: default; }
+    .field-hint { margin-top: 8px; font-size: 12px; color: #64748b; }
+    .upload-status { margin-top: 8px; font-size: 12px; color: var(--primary); }
+    .image-grid {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .image-item {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+      min-height: 140px;
+    }
+    .image-thumb {
+      width: 100%;
+      height: 140px;
+      object-fit: contain;
+      padding: 8px;
+      display: block;
+      background: linear-gradient(160deg, #f8fafc 0%, #eef2ff 100%);
+    }
+    .image-remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, .72);
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+    .image-order {
+      padding: 0;
+      font-size: 12px;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .image-order-tag {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: rgba(99, 102, 241, .10);
+      color: var(--primary);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .image-order-tag.is-auto {
+      background: rgba(14, 165, 233, .12);
+      color: #0284c7;
+    }
+    .image-meta {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid var(--border);
+      background: #f8fafc;
+    }
+    .image-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .image-action-btn {
+      flex: 1 1 0;
+      min-width: 0;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 9px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .image-action-btn.is-active {
+      color: var(--primary);
+      border-color: rgba(99, 102, 241, .36);
+      background: rgba(99, 102, 241, .08);
+    }
+    .image-empty {
+      grid-column: 1 / -1;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+      background: #f8fafc;
+    }
+    .btn-submit {
+      width: 100%; padding: 13px; background: var(--primary); color: #fff;
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+      cursor: pointer; transition: background .2s; margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--primary-hover); }
+    .btn-submit:disabled { opacity: .6; cursor: default; }
+    .toast {
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1e293b; color: #fff; padding: 10px 20px;
+      border-radius: 10px; font-size: 13px; opacity: 0;
+      transition: opacity .25s, transform .25s; pointer-events: none; z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .crop-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .58);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 1200;
+    }
+    .crop-modal.show { display: flex; }
+    .crop-modal-card {
+      width: min(940px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 30px 80px rgba(15, 23, 42, .26);
+      padding: 24px;
+    }
+    .crop-modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .crop-modal-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .crop-modal-desc {
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #64748b;
+    }
+    .crop-modal-close {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: #475569;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .crop-stage-shell {
+      margin-top: 18px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+    }
+    .crop-stage {
+      position: relative;
+      width: min(100%, 420px);
+      margin: 0 auto;
+      aspect-ratio: 3 / 4;
+      border-radius: 18px;
+      overflow: hidden;
+      background:
+        linear-gradient(45deg, rgba(255,255,255,.7) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.7) 75%),
+        linear-gradient(45deg, rgba(255,255,255,.7) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.7) 75%),
+        #dbe4f0;
+      background-size: 18px 18px;
+      background-position: 0 0, 9px 9px;
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, .18);
+    }
+    .crop-target {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      max-width: none;
+      max-height: none;
+      transform: translate(-50%, -50%);
+      transform-origin: center center;
+      user-select: none;
+      pointer-events: none;
+    }
+    .crop-stage-mask {
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.92), inset 0 0 0 9999px rgba(15, 23, 42, .18);
+      pointer-events: none;
+    }
+    .crop-controls {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .crop-control {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .crop-control label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+    }
+    .crop-control input[type="range"] { width: 100%; }
+    .crop-modal-actions {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 720px) {
+      .card { padding: 24px 18px; }
+      .crop-modal { padding: 14px; }
+      .crop-modal-card { padding: 18px; }
+      .crop-controls { grid-template-columns: 1fr; }
+      .image-actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="navbar-brand" onclick="goHome()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+      </svg>
+      博客广场
+    </div>
+    <div class="navbar-search">
+      <span class="search-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="M20 20l-3.5-3.5"></path>
+        </svg>
+      </span>
+      <input type="text" placeholder="搜索探索更多内容" onkeydown="if(event.key==='Enter') SiteNavigation.navigateDiscovery(this.value)">
+    </div>
+    <div class="navbar-spacer" aria-hidden="true"></div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="card">
+    <h1 id="pageTitle">✏️ 发布文章</h1>
+    <div class="field">
+      <label>标题 *</label>
+      <input id="title" type="text" placeholder="给文章起个标题">
+    </div>
+    <div class="field">
+      <label>封面（可选，默认自动取正文首图）</label>
+      <input id="coverImg" type="url" placeholder="https://..." oninput="handleCoverUrlInput(this.value)">
+      <div class="cover-upload-actions">
+        <input id="coverFileInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onchange="handleCoverFileChange(event)">
+        <button class="btn-secondary" id="uploadCoverBtn" type="button" onclick="triggerCoverFileSelect()">上传自定义封面</button>
+        <button class="btn-secondary" id="cropCoverBtn" type="button" onclick="openCurrentCoverCrop()">微调当前封面</button>
+        <button class="btn-secondary" id="clearCoverBtn" type="button" onclick="clearCoverImage()">恢复自动封面</button>
+      </div>
+      <div class="field-hint" id="coverUploadHint">不单独设置也可以：系统会默认取正文第 1 张图片做封面，并自动适配首页、热门位和详情页；只有想微调时再上传或裁剪。</div>
+      <img id="coverPreview" class="cover-preview" alt="封面预览">
+    </div>
+    <div class="field">
+      <label>正文内容 *</label>
+      <textarea id="content" placeholder="写下你的文章内容…"></textarea>
+    </div>
+    <div class="field">
+      <label>博客图片（可多选）</label>
+      <div class="cover-upload-actions">
+        <input id="blogImagesFileInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden onchange="handleBlogImageFilesChange(event)">
+        <button class="btn-secondary" id="uploadBlogImagesBtn" type="button" onclick="triggerBlogImagesFileSelect()">传多张图片</button>
+        <button class="btn-secondary" id="clearBlogImagesBtn" type="button" onclick="clearBlogImages()">清空所有图片</button>
+      </div>
+      <div class="field-hint" id="blogImagesUploadHint">支持一次选择多张图片，按上传顺序展示；若未单独设置封面，系统默认取第 1 张作为封面。</div>
+      <div class="upload-status" id="blogImagesUploadStatus" style="display:none"></div>
+      <div class="image-grid" id="blogImagesPreview"><div class="image-empty">暂未添加博客图片</div></div>
+    </div>
+    <button class="btn-submit" id="submitBtn" onclick="submit()">发 布</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="crop-modal" id="coverCropModal" aria-hidden="true">
+  <div class="crop-modal-card">
+    <div class="crop-modal-header">
+      <div>
+        <div class="crop-modal-title">裁剪封面</div>
+        <div class="crop-modal-desc" id="cropModalDesc">系统默认会自动取正文首图；只有想微调展示时，才需要手动裁剪成 3:4 封面。</div>
+      </div>
+      <button class="crop-modal-close" type="button" onclick="closeCoverCropModal()" aria-label="关闭裁剪弹窗">×</button>
+    </div>
+    <div class="crop-stage-shell">
+      <div class="crop-stage" id="cropStage">
+        <img class="crop-target" id="cropTarget" alt="封面裁剪预览">
+        <div class="crop-stage-mask"></div>
+      </div>
+    </div>
+    <div class="crop-controls">
+      <div class="crop-control">
+        <label for="cropZoomRange">缩放</label>
+        <input id="cropZoomRange" type="range" min="100" max="300" step="1" value="100" oninput="updateCropPreview()">
+      </div>
+      <div class="crop-control">
+        <label for="cropXRange">左右移动</label>
+        <input id="cropXRange" type="range" min="-100" max="100" step="1" value="0" oninput="updateCropPreview()">
+      </div>
+      <div class="crop-control">
+        <label for="cropYRange">上下移动</label>
+        <input id="cropYRange" type="range" min="-100" max="100" step="1" value="0" oninput="updateCropPreview()">
+      </div>
+    </div>
+    <div class="crop-modal-actions">
+      <button class="btn-secondary" id="cropUseOriginalBtn" type="button" onclick="useOriginalCoverImage()">直接上传原图</button>
+      <button class="btn-secondary" type="button" onclick="closeCoverCropModal()">取消</button>
+      <button class="btn-secondary" type="button" onclick="saveCroppedCover()">保存为封面</button>
+    </div>
+  </div>
+</div>
+
+<script src="/site-navigation.js"></script>
+<script src="/oss-upload.js"></script>
+<script>
+  const HOME_FEED_STORAGE_KEY = 'homeFeedState:v1';
+  const HOME_FEED_PENDING_KEY = 'homeFeedRestorePending:v1';
+  const HOME_FEED_INVALIDATED_AT_KEY = 'homeFeedInvalidatedAt:v1';
+
+  function goHome() {
+    if (window.SiteNavigation) {
+      SiteNavigation.navigate('/');
+      return;
+    }
+    window.location.href = '/';
+  }
+
+  function redirectToLogin() {
+    if (window.SiteNavigation?.requestLogin) {
+      SiteNavigation.requestLogin({
+        returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}`
+      });
+      return;
+    }
+    goHome();
+  }
+
+  if (window.SiteNavigation) {
+    SiteNavigation.onIdle(() => {
+      SiteNavigation.warmRoutes(['/']);
+    });
+  }
+
+  function clearHomeFeedSnapshot() {
+    try {
+      sessionStorage.removeItem(HOME_FEED_PENDING_KEY);
+      sessionStorage.removeItem(HOME_FEED_STORAGE_KEY);
+      sessionStorage.setItem(HOME_FEED_INVALIDATED_AT_KEY, String(Date.now()));
+    } catch (error) {
+    }
+  }
+
+  // 检查是否编辑模式（URL 带 ?id=xxx）
+  const params = new URLSearchParams(location.search);
+  const editId = params.get('id');
+  const COVER_CROP_RATIO = { width: 3, height: 4 };
+  let coverUploading = false;
+  let blogImageUploading = false;
+  let submitting = false;
+  let blogImages = [];
+  let coverCropState = {
+    sourceUrl: '',
+    sourceFile: null,
+    objectUrl: '',
+    fileName: 'cover.jpg',
+    fileType: 'image/jpeg',
+    naturalWidth: 0,
+    naturalHeight: 0,
+    isRemote: false,
+    scale: 1,
+    offsetX: 0,
+    offsetY: 0,
+    sourceRect: null
+  };
+
+  if (editId) {
+    document.getElementById('pageTitle').textContent = '✏️ 编辑文章';
+    document.getElementById('submitBtn').textContent = '保 存';
+    loadBlog(editId);
+  }
+
+  // 验证登录
+  fetch('/user/get/login', { credentials: 'include' })
+    .then(r => r.json())
+    .then(res => {
+      if (!res.data) {
+        redirectToLogin();
+      }
+    });
+
+  async function loadBlog(id) {
+    const res = await fetch(`/blog/get?blogId=${id}`, { credentials: 'include' });
+    const data = await res.json();
+    if (data.code !== 0 || !data.data) return showToast('加载失败');
+    const b = data.data;
+    document.getElementById('title').value = b.title || '';
+    document.getElementById('content').value = b.content || '';
+    blogImages = normalizeImageList(b.imageList);
+    const resolvedCover = String(b.coverImg || '').trim();
+    const autoCover = blogImages[0] || '';
+    document.getElementById('coverImg').value = resolvedCover && resolvedCover !== autoCover ? resolvedCover : '';
+    renderBlogImagesPreview();
+    previewCover(getCurrentCoverUrl());
+  }
+
+  function previewCover(url) {
+    const img = document.getElementById('coverPreview');
+    const normalized = String(url || '').trim() || getAutoCoverUrl();
+    if (normalized) {
+      img.src = normalized;
+      img.style.display = 'block';
+    } else {
+      img.removeAttribute('src');
+      img.style.display = 'none';
+    }
+    syncCoverActionState();
+    updateCoverUploadHint();
+  }
+
+  function handleCoverUrlInput(url) {
+    previewCover(url);
+    renderBlogImagesPreview();
+  }
+
+  function normalizeImageList(list) {
+    if (!Array.isArray(list)) return [];
+    const seen = new Set();
+    return list.map(url => String(url || '').trim()).filter(url => {
+      if (!url || seen.has(url)) return false;
+      seen.add(url);
+      return true;
+    });
+  }
+
+  function escAttr(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function updateSubmitButtonState() {
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = submitting || coverUploading || blogImageUploading;
+  }
+
+  function getCurrentCoverUrl() {
+    return String(document.getElementById('coverImg').value || '').trim();
+  }
+
+  function hasManualCover() {
+    return !!getCurrentCoverUrl();
+  }
+
+  function getAutoCoverUrl() {
+    return String(blogImages[0] || '').trim();
+  }
+
+  function getDisplayCoverUrl() {
+    return getCurrentCoverUrl() || getAutoCoverUrl();
+  }
+
+  function getDefaultCoverHint() {
+    if (hasManualCover()) {
+      return '当前使用的是自定义封面；首页和热门位会自动适配横竖图，不需要额外选比例。';
+    }
+    if (getAutoCoverUrl()) {
+      return '未单独设置封面，系统将默认使用第 1 张博客图片作为封面，并自动适配首页、热门位和详情页。';
+    }
+    return '不单独设置也可以：系统会默认取正文第 1 张图片做封面，并自动适配首页、热门位和详情页；只有想微调时再上传或裁剪。';
+  }
+
+  function updateCoverUploadHint(customText = '') {
+    document.getElementById('coverUploadHint').textContent = customText || getDefaultCoverHint();
+  }
+
+  function syncCoverActionState() {
+    const cropBtn = document.getElementById('cropCoverBtn');
+    const clearBtn = document.getElementById('clearCoverBtn');
+    if (cropBtn) cropBtn.disabled = coverUploading || !getDisplayCoverUrl();
+    if (clearBtn) clearBtn.disabled = coverUploading || !hasManualCover();
+  }
+
+  function setCoverImage(url, hintText = '') {
+    document.getElementById('coverImg').value = url || '';
+    previewCover(url || '');
+    updateCoverUploadHint(hintText);
+    renderBlogImagesPreview();
+  }
+
+  function triggerCoverFileSelect() {
+    if (coverUploading) return;
+    document.getElementById('coverFileInput').click();
+  }
+
+  async function uploadCoverFile(file, successHint = '自定义封面上传成功，系统会自动适配展示。', successToast = '封面上传成功') {
+    if (!window.SiteOssUpload?.uploadImage) {
+      throw new Error('上传能力未就绪，请刷新后重试');
+    }
+    const uploadBtn = document.getElementById('uploadCoverBtn');
+    const cropBtn = document.getElementById('cropCoverBtn');
+    const clearBtn = document.getElementById('clearCoverBtn');
+    const hint = document.getElementById('coverUploadHint');
+    coverUploading = true;
+    updateSubmitButtonState();
+    uploadBtn.disabled = true;
+    cropBtn.disabled = true;
+    clearBtn.disabled = true;
+    hint.textContent = '封面上传中…';
+    try {
+      const result = await SiteOssUpload.uploadImage(file, 'blogCover');
+      setCoverImage(result.publicUrl || '', successHint);
+      showToast(successToast);
+      return result;
+    } finally {
+      coverUploading = false;
+      updateSubmitButtonState();
+      uploadBtn.disabled = false;
+      syncCoverActionState();
+      clearBtn.disabled = false;
+    }
+  }
+
+  function handleCoverFileChange(event) {
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+    openCoverCropModalFromFile(file);
+    event.target.value = '';
+  }
+
+  function clearCoverImage() {
+    setCoverImage('', getAutoCoverUrl() ? '已恢复自动封面，发布时会默认使用第 1 张博客图片。' : '已恢复自动封面；当前还没有可自动使用的正文图片。');
+    document.getElementById('coverFileInput').value = '';
+    closeCoverCropModal();
+  }
+
+  function triggerBlogImagesFileSelect() {
+    if (blogImageUploading) return;
+    document.getElementById('blogImagesFileInput').click();
+  }
+
+  async function handleBlogImageFilesChange(event) {
+    const files = Array.from(event?.target?.files || []);
+    if (!files.length) return;
+    if (!window.SiteOssUpload?.uploadImage) {
+      showToast('上传能力未就绪，请刷新后重试');
+      event.target.value = '';
+      return;
+    }
+    const uploadBtn = document.getElementById('uploadBlogImagesBtn');
+    const clearBtn = document.getElementById('clearBlogImagesBtn');
+    const hint = document.getElementById('blogImagesUploadHint');
+    const status = document.getElementById('blogImagesUploadStatus');
+    blogImageUploading = true;
+    updateSubmitButtonState();
+    uploadBtn.disabled = true;
+    clearBtn.disabled = true;
+    status.style.display = 'block';
+    let successCount = 0;
+    try {
+      for (let i = 0; i < files.length; i++) {
+        status.textContent = `正在上传第 ${i + 1} / ${files.length} 张图片…`;
+        const result = await SiteOssUpload.uploadImage(files[i], 'blogImage');
+        if (result?.publicUrl) {
+          blogImages.push(result.publicUrl);
+          blogImages = normalizeImageList(blogImages);
+          successCount++;
+          renderBlogImagesPreview();
+          previewCover(getCurrentCoverUrl());
+        }
+      }
+      hint.textContent = successCount > 0
+        ? `已成功上传 ${successCount} 张图片；若未单独设置封面，系统会默认取第 1 张。`
+        : '未上传成功，请重试';
+      status.textContent = successCount > 0 ? '图片上传完成' : '图片上传失败';
+      showToast(successCount > 0 ? `成功上传 ${successCount} 张图片` : '图片上传失败');
+    } catch (error) {
+      hint.textContent = error?.message || '图片上传失败，请稍后重试';
+      status.textContent = hint.textContent;
+      showToast(hint.textContent);
+    } finally {
+      blogImageUploading = false;
+      updateSubmitButtonState();
+      uploadBtn.disabled = false;
+      clearBtn.disabled = false;
+      event.target.value = '';
+    }
+  }
+
+  function renderBlogImagesPreview() {
+    const wrap = document.getElementById('blogImagesPreview');
+    const currentCover = getCurrentCoverUrl();
+    if (!blogImages.length) {
+      wrap.innerHTML = '<div class="image-empty">暂未添加博客图片</div>';
+      return;
+    }
+    const manualCover = getCurrentCoverUrl();
+    const autoCover = getAutoCoverUrl();
+    const displayCover = getDisplayCoverUrl();
+    wrap.innerHTML = blogImages.map((url, index) => `
+      <div class="image-item">
+        <img class="image-thumb" src="${escAttr(url)}" alt="博客图片 ${index + 1}" loading="lazy">
+        <button class="image-remove" type="button" data-action="remove" data-index="${index}" title="删除这张图片">×</button>
+        <div class="image-meta">
+          <div class="image-order">
+            <span>第 ${index + 1} 张</span>
+            ${manualCover === url ? '<span class="image-order-tag">当前封面</span>' : (!manualCover && autoCover === url ? '<span class="image-order-tag is-auto">系统默认封面</span>' : '')}
+          </div>
+          <div class="image-actions">
+            <button class="image-action-btn ${(displayCover === url && hasManualCover()) ? 'is-active' : ''}" type="button" data-action="set-cover" data-index="${index}">${manualCover === url ? '已设为封面' : (!manualCover && autoCover === url ? '改成自定义封面' : '设为封面')}</button>
+            <button class="image-action-btn" type="button" data-action="crop-cover" data-index="${index}">裁成封面</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function selectBlogImageAsCover(index) {
+    const url = blogImages[index];
+    if (!url) return;
+    setCoverImage(url, `已将第 ${index + 1} 张博客图片设为自定义封面；首页和热门位会继续自动适配。`);
+    showToast('已设为封面');
+  }
+
+  function cropBlogImageAsCover(index) {
+    const url = blogImages[index];
+    if (!url) return;
+    openCoverCropModal(url, {
+      fileName: `blog-image-cover-${index + 1}.jpg`,
+      fileType: 'image/jpeg',
+      isRemote: true,
+      sourceFile: null,
+      description: `你正在裁剪第 ${index + 1} 张博客图片；保存后会生成新的自定义封面，其他展示比例仍由系统自动适配。`
+    });
+  }
+
+  function removeBlogImage(index) {
+    if (blogImageUploading) return;
+    blogImages = blogImages.filter((_, current) => current !== index);
+    renderBlogImagesPreview();
+    previewCover(getCurrentCoverUrl());
+    document.getElementById('blogImagesUploadHint').textContent = blogImages.length
+      ? `当前已保留 ${blogImages.length} 张图片。`
+      : '已清空博客图片，发布时将不携带详情图片。';
+  }
+
+  function clearBlogImages() {
+    if (blogImageUploading) return;
+    blogImages = [];
+    document.getElementById('blogImagesFileInput').value = '';
+    document.getElementById('blogImagesUploadHint').textContent = '已清空博客图片，发布时将不携带详情图片。';
+    document.getElementById('blogImagesUploadStatus').style.display = 'none';
+    renderBlogImagesPreview();
+    previewCover(getCurrentCoverUrl());
+  }
+
+  document.getElementById('blogImagesPreview').addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-action][data-index]');
+    if (!btn) return;
+    const index = Number(btn.dataset.index);
+    if (Number.isNaN(index)) return;
+    if (btn.dataset.action === 'remove') {
+      removeBlogImage(index);
+      return;
+    }
+    if (btn.dataset.action === 'set-cover') {
+      selectBlogImageAsCover(index);
+      return;
+    }
+    if (btn.dataset.action === 'crop-cover') {
+      cropBlogImageAsCover(index);
+    }
+  });
+
+  function getCropOutputType() {
+    const inputType = String(coverCropState.fileType || '').toLowerCase();
+    if (inputType === 'image/png' || inputType === 'image/webp') return inputType;
+    return 'image/jpeg';
+  }
+
+  function getCropOutputName() {
+    const outputType = getCropOutputType();
+    const extension = outputType === 'image/png' ? 'png' : outputType === 'image/webp' ? 'webp' : 'jpg';
+    const baseName = String(coverCropState.fileName || 'cover').replace(/\.[^.]+$/, '');
+    return `${baseName}-crop.${extension}`;
+  }
+
+  function resetCropControls() {
+    document.getElementById('cropZoomRange').value = '100';
+    document.getElementById('cropXRange').value = '0';
+    document.getElementById('cropYRange').value = '0';
+    requestAnimationFrame(updateCropPreview);
+  }
+
+  function revokeCropObjectUrl() {
+    if (coverCropState.objectUrl) {
+      URL.revokeObjectURL(coverCropState.objectUrl);
+      coverCropState.objectUrl = '';
+    }
+  }
+
+  function isCanvasTaintedError(error) {
+    const message = String(error?.message || error || '').toLowerCase();
+    return message.includes('tainted canvases')
+      || message.includes('tainted canvas')
+      || message.includes('cross-origin data')
+      || message.includes('cross origin data');
+  }
+
+  function getCropExportErrorMessage() {
+    return '当前封面图片来自不支持跨域裁剪的地址，请先重新上传到本站后再裁剪。';
+  }
+
+  function openCoverCropModal(sourceUrl, options = {}) {
+    const modal = document.getElementById('coverCropModal');
+    const target = document.getElementById('cropTarget');
+    const desc = document.getElementById('cropModalDesc');
+    const useOriginalBtn = document.getElementById('cropUseOriginalBtn');
+    const src = String(sourceUrl || '').trim();
+    if (!src) {
+      showToast('请先选择一张封面图');
+      return;
+    }
+    revokeCropObjectUrl();
+    target.removeAttribute('src');
+    if (options.isRemote) target.crossOrigin = 'anonymous';
+    else target.removeAttribute('crossorigin');
+    const loader = new Image();
+    if (options.isRemote) loader.crossOrigin = 'anonymous';
+    loader.onload = () => {
+      coverCropState = {
+        sourceUrl: src,
+        sourceFile: options.sourceFile || null,
+        objectUrl: options.objectUrl || '',
+        fileName: options.fileName || 'cover.jpg',
+        fileType: options.fileType || 'image/jpeg',
+        naturalWidth: loader.naturalWidth,
+        naturalHeight: loader.naturalHeight,
+        isRemote: !!options.isRemote,
+        scale: 1,
+        offsetX: 0,
+        offsetY: 0,
+        sourceRect: null
+      };
+      if (coverCropState.isRemote) target.crossOrigin = 'anonymous';
+      else target.removeAttribute('crossorigin');
+      target.src = src;
+      desc.textContent = options.description || '封面固定按 3:4 裁剪；首页和热门位会在此基础上自动适配展示，不需要再手选比例。';
+      useOriginalBtn.style.display = coverCropState.sourceFile ? 'inline-flex' : 'none';
+      document.getElementById('cropStage').style.aspectRatio = `${COVER_CROP_RATIO.width} / ${COVER_CROP_RATIO.height}`;
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      resetCropControls();
+    };
+    loader.onerror = () => {
+      revokeCropObjectUrl();
+      showToast(options.isRemote ? getCropExportErrorMessage() : '当前图片暂时无法裁剪，请换一张图片试试');
+    };
+    loader.src = src;
+  }
+
+  function openCoverCropModalFromFile(file) {
+    const objectUrl = URL.createObjectURL(file);
+    openCoverCropModal(objectUrl, {
+      sourceFile: file,
+      objectUrl,
+      fileName: file.name || 'cover.jpg',
+      fileType: file.type || 'image/jpeg',
+      isRemote: false,
+      description: '上传前先裁好 3:4 封面；保存后会自动上传裁剪后的版本，其余展示比例继续由系统适配。'
+    });
+  }
+
+  function openCurrentCoverCrop() {
+    const coverUrl = getDisplayCoverUrl();
+    if (!coverUrl) {
+      showToast('请先选择一张封面图');
+      return;
+    }
+    openCoverCropModal(coverUrl, {
+      fileName: 'current-cover.jpg',
+      fileType: 'image/jpeg',
+      isRemote: true,
+      sourceFile: null,
+      description: hasManualCover()
+        ? '你正在微调当前自定义封面（3:4）；保存后会生成新的封面地址。若外链不支持跨域，将无法裁剪。'
+        : '当前展示的是系统自动取用的首图；保存后会生成新的自定义封面地址。若外链不支持跨域，将无法裁剪。'
+    });
+  }
+
+  function closeCoverCropModal() {
+    const modal = document.getElementById('coverCropModal');
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    document.getElementById('cropTarget').removeAttribute('src');
+    document.getElementById('cropTarget').removeAttribute('crossorigin');
+    revokeCropObjectUrl();
+    coverCropState = {
+      sourceUrl: '',
+      sourceFile: null,
+      objectUrl: '',
+      fileName: 'cover.jpg',
+      fileType: 'image/jpeg',
+      naturalWidth: 0,
+      naturalHeight: 0,
+      isRemote: false,
+      scale: 1,
+      offsetX: 0,
+      offsetY: 0,
+      sourceRect: null
+    };
+  }
+
+  function updateCropPreview() {
+    const stage = document.getElementById('cropStage');
+    const target = document.getElementById('cropTarget');
+    if (!stage || !target || !coverCropState.naturalWidth || !coverCropState.naturalHeight) return;
+    const stageWidth = stage.clientWidth;
+    const stageHeight = stage.clientHeight;
+    if (!stageWidth || !stageHeight) return;
+    const zoom = Number(document.getElementById('cropZoomRange').value || 100) / 100;
+    const xPercent = Number(document.getElementById('cropXRange').value || 0) / 100;
+    const yPercent = Number(document.getElementById('cropYRange').value || 0) / 100;
+    const baseScale = Math.max(stageWidth / coverCropState.naturalWidth, stageHeight / coverCropState.naturalHeight);
+    const scale = baseScale * zoom;
+    const displayWidth = coverCropState.naturalWidth * scale;
+    const displayHeight = coverCropState.naturalHeight * scale;
+    const maxOffsetX = Math.max(0, (displayWidth - stageWidth) / 2);
+    const maxOffsetY = Math.max(0, (displayHeight - stageHeight) / 2);
+    const offsetX = xPercent * maxOffsetX;
+    const offsetY = yPercent * maxOffsetY;
+    target.style.width = `${displayWidth}px`;
+    target.style.height = `${displayHeight}px`;
+    target.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+    const visibleWidth = stageWidth / scale;
+    const visibleHeight = stageHeight / scale;
+    let sourceX = (coverCropState.naturalWidth - visibleWidth) / 2 - offsetX / scale;
+    let sourceY = (coverCropState.naturalHeight - visibleHeight) / 2 - offsetY / scale;
+    sourceX = Math.max(0, Math.min(coverCropState.naturalWidth - visibleWidth, sourceX));
+    sourceY = Math.max(0, Math.min(coverCropState.naturalHeight - visibleHeight, sourceY));
+    coverCropState.scale = scale;
+    coverCropState.offsetX = offsetX;
+    coverCropState.offsetY = offsetY;
+    coverCropState.sourceRect = {
+      x: sourceX,
+      y: sourceY,
+      width: visibleWidth,
+      height: visibleHeight
+    };
+  }
+
+  async function canvasToFile(canvas, fileName, mimeType) {
+    const blob = await new Promise((resolve, reject) => {
+      try {
+        canvas.toBlob(blobValue => {
+          if (!blobValue) {
+            reject(new Error('生成裁剪图片失败'));
+            return;
+          }
+          resolve(blobValue);
+        }, mimeType, mimeType === 'image/jpeg' ? .92 : undefined);
+      } catch (error) {
+        if (isCanvasTaintedError(error)) {
+          reject(new Error(getCropExportErrorMessage()));
+          return;
+        }
+        reject(error);
+      }
+    });
+    return new File([blob], fileName, { type: mimeType, lastModified: Date.now() });
+  }
+
+  async function buildCroppedCoverFile() {
+    updateCropPreview();
+    if (!coverCropState.sourceRect) {
+      throw new Error('裁剪区域尚未准备好');
+    }
+    const ratio = COVER_CROP_RATIO;
+    const shortSide = 1000;
+    const canvas = document.createElement('canvas');
+    if (ratio.width >= ratio.height) {
+      canvas.height = shortSide;
+      canvas.width = Math.round(shortSide * ratio.width / ratio.height);
+    } else {
+      canvas.width = shortSide;
+      canvas.height = Math.round(shortSide * ratio.height / ratio.width);
+    }
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('裁剪画布初始化失败');
+    const image = document.getElementById('cropTarget');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(
+      image,
+      coverCropState.sourceRect.x,
+      coverCropState.sourceRect.y,
+      coverCropState.sourceRect.width,
+      coverCropState.sourceRect.height,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+    return canvasToFile(canvas, getCropOutputName(), getCropOutputType());
+  }
+
+  async function useOriginalCoverImage() {
+    if (!coverCropState.sourceFile) {
+      closeCoverCropModal();
+      return;
+    }
+    try {
+      const file = coverCropState.sourceFile;
+      closeCoverCropModal();
+      await uploadCoverFile(file);
+    } catch (error) {
+      updateCoverUploadHint(error?.message || '封面上传失败，请稍后重试');
+      showToast(document.getElementById('coverUploadHint').textContent);
+    }
+  }
+
+  async function saveCroppedCover() {
+    try {
+      const file = await buildCroppedCoverFile();
+      closeCoverCropModal();
+      await uploadCoverFile(file, '封面裁剪上传成功，发布时会使用新的封面地址。', '封面已裁剪并上传');
+    } catch (error) {
+      updateCoverUploadHint(error?.message || '裁剪封面失败，请稍后重试');
+      showToast(document.getElementById('coverUploadHint').textContent);
+    }
+  }
+
+  window.addEventListener('resize', () => {
+    if (document.getElementById('coverCropModal').classList.contains('show')) {
+      updateCropPreview();
+    }
+  });
+
+  async function submit() {
+    const title = document.getElementById('title').value.trim();
+    const content = document.getElementById('content').value.trim();
+    const coverImg = document.getElementById('coverImg').value.trim();
+    if (!title) return showToast('请填写标题');
+    if (!content) return showToast('请填写内容');
+    if (coverUploading) return showToast('封面还在上传中，请稍候');
+    if (blogImageUploading) return showToast('博客图片还在上传中，请稍候');
+
+    submitting = true;
+    updateSubmitButtonState();
+
+    const url = editId ? `/blog/update` : `/blog/publish`;
+    const body = editId
+      ? { id: editId, title, content, coverImg: coverImg || null, imageList: blogImages }
+      : { title, content, coverImg: coverImg || null, imageList: blogImages };
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.code === 0) {
+        const blogId = editId || data.data;
+        clearHomeFeedSnapshot();
+        showToast(editId ? '保存成功！' : '发布成功！');
+        setTimeout(() => location.href = `/blog.html?id=${blogId}`, 800);
+      } else {
+        showToast(data.message || '操作失败');
+      }
+    } catch (error) {
+      showToast('提交失败，请检查网络后重试');
+    } finally {
+      submitting = false;
+      updateSubmitButtonState();
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  updateCoverUploadHint();
+  syncCoverActionState();
+</script>
+</body>
+</html>

@@ -1,0 +1,653 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="7d384269-ba3f-4025-97a0-03e7068fcf3f" name="更改" comment="基本结构">
+      <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.ask2agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilotDiffState.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/3b353ca2-6fba-4fd3-9fc4-e929d624e259.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/3b353ca2-6fba-4fd3-9fc4-e929d624e259/storage_v2/_src_/schema/dianzan.db2mYg.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/3b353ca2-6fba-4fd3-9fc4-e929d624e259/storage_v2/_src_/schema/lin_db.7HhGvg.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/3b353ca2-6fba-4fd3-9fc4-e929d624e259/storage_v2/_src_/schema/mysql.osA4Bg.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/51bc256f-f063-44fe-b1ee-3b92b36f60ed.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/data_source_mapping.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/db-forest-config.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/mybatisx/templates.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/queries/Query.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/queries/Query_1.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/queries/Query_2.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/queries/Query_3.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/queries/Query_4.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/queries/Query_5.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/queries/Query_6.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/application.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/DianzanApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/common/BaseResponse.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/common/PageRequest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/common/ResultUtils.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/config/CorsConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/config/JacksonConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/config/OssClientConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/config/OssProperties.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/config/RedisConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/config/ThumbConsumerConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/constant/RedisLuaScriptConstant.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/constant/ThumbConstant.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/constant/UserConstant.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/controller/BlogController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/controller/BlogSearchController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/controller/CommentController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/controller/FavoriteController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/controller/FeedbackController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/controller/FollowController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/controller/MainController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/controller/NotificationController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/controller/OssController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/controller/ThumbController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/controller/UserController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/example/GetSignUrl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/example/SignUrlUpload.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/exception/BusinessException.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/exception/ErrorCode.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/exception/GlobalExceptionHandler.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/exception/ThrowUtils.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/interceptor/LoginInterceptor.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/interceptor/PerformanceLogInterceptor.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/interceptor/RefreshInterceptor.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/job/SyncThumb2DBCompensatoryJob.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/job/SyncThumb2DBJob.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/job/ThumbReconcileJob.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/listener/BlogImageSchemaInitializer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/listener/CacheWarmupRunner.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/listener/FeedbackSchemaInitializer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/listener/thumb/ThumbConsumer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/listener/thumb/msg/ThumbEvent$EventType.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/listener/thumb/msg/ThumbEvent$ThumbEventBuilder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/listener/thumb/msg/ThumbEvent.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/manager/cache/AddResult.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/manager/cache/CacheManager.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/manager/cache/HeavyKeeper$Bucket.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/manager/cache/HeavyKeeper$Node.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/manager/cache/HeavyKeeper.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/manager/cache/Item.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/manager/cache/TopK.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/mapper/BlogMapper.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/mapper/CommentMapper.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/mapper/FavoriteMapper.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/mapper/FeedbackMapper.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/mapper/FollowMapper.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/mapper/NotificationMapper.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/mapper/ThumbMapper.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/mapper/UserMapper.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/dto/FeedbackSubmitRequest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/dto/OssPresignRequest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/dto/UserLoginRequest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/dto/UserProfileUpdateRequest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/dto/UserRegisterRequest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/dto/favorite/DoFavoriteRequest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/dto/thumb/DoThumbRequest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/dto/thumb/ThumbRedisData.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/entity/Blog.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/entity/BlogDoc.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/entity/Comment.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/entity/Favorite.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/entity/Feedback.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/entity/Follow.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/entity/Notification.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/entity/Thumb.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/entity/User.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/enums/LuaStatusEnum.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/enums/ThumbTypeEnum.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/AuthorStatsVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/BlogPageVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/BlogVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/CommentVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/FavoriteActionResponse.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/FollowActionVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/FollowPageVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/FollowUserVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/HotBlogVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/NotificationItemVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/NotificationPageVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/NotificationStatsVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/OssPresignVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/SiteOverviewVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/ThumbActionResponse.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/UserProfileStatsVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/model/vo/UserProfileVO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/repository/BlogEsRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/BlogService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/CommentService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/FavoriteService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/FeedbackService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/FollowService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/OssUploadService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/ThumbService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/UserService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/impl/BlogSearchService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/impl/BlogServiceImpl$UserBlogCursor.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/impl/BlogServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/impl/CommentServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/impl/FavoriteServiceImpl$FavoriteCursor.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/impl/FavoriteServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/impl/FeedbackServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/impl/FollowServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/impl/OssUploadServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/impl/ThumbServiceUltimateImpl$ThumbCursor.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/impl/ThumbServiceUltimateImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/service/impl/UserServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/util/BlogImageUtils.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/util/CacheSourceContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/dianzan/util/RedisKeyUtil.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/logback.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/mapper/BlogMapper.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/mapper/CommentMapper.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/mapper/FavoriteMapper.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/mapper/FollowMapper.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/mapper/ThumbMapper.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/mapper/UserMapper.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/avatar-render.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/blog.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/common-navbar.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/follow-list.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/notifications.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/oss-upload.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/profile.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/publish.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/shell-embed-guard.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/static/site-navigation.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/dianzan-0.0.1-SNAPSHOT.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/dianzan-0.0.1-SNAPSHOT.jar.original" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-archiver/pom.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.example.dianzan.DianzanApplicationTests.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.example.dianzan.FavoriteWriteAccessTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.example.dianzan.FeedbackSubmitAccessTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.example.dianzan.FollowServiceImplTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.example.dianzan.HotBlogAccessTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.example.dianzan.OssUploadAccessTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.example.dianzan.ProfileFollowPublicAccessTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.example.dianzan.PublicEndpointAccessTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.example.dianzan.UserBlogPublicAccessTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.example.dianzan.UserFavoritePublicAccessTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.example.dianzan.UserProfileUpdateAccessTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/TEST-com.example.dianzan.UserThumbPublicAccessTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.example.dianzan.DianzanApplicationTests.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.example.dianzan.FavoriteWriteAccessTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.example.dianzan.FeedbackSubmitAccessTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.example.dianzan.FollowServiceImplTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.example.dianzan.HotBlogAccessTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.example.dianzan.OssUploadAccessTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.example.dianzan.ProfileFollowPublicAccessTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.example.dianzan.PublicEndpointAccessTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.example.dianzan.UserBlogPublicAccessTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.example.dianzan.UserFavoritePublicAccessTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.example.dianzan.UserProfileUpdateAccessTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/surefire-reports/com.example.dianzan.UserThumbPublicAccessTest.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/DianzanApplicationTests.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/FavoriteWriteAccessTest$MockConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/FavoriteWriteAccessTest$TestApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/FavoriteWriteAccessTest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/FeedbackSubmitAccessTest$MockConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/FeedbackSubmitAccessTest$TestApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/FeedbackSubmitAccessTest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/FollowServiceImplTest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/HotBlogAccessTest$MockConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/HotBlogAccessTest$TestApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/HotBlogAccessTest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/OssUploadAccessTest$MockConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/OssUploadAccessTest$TestApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/OssUploadAccessTest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/ProfileFollowPublicAccessTest$MockConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/ProfileFollowPublicAccessTest$TestApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/ProfileFollowPublicAccessTest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/PublicEndpointAccessTest$MockConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/PublicEndpointAccessTest$TestApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/PublicEndpointAccessTest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/UserBlogPublicAccessTest$MockConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/UserBlogPublicAccessTest$TestApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/UserBlogPublicAccessTest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/UserFavoritePublicAccessTest$MockConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/UserFavoritePublicAccessTest$TestApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/UserFavoritePublicAccessTest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/UserProfileUpdateAccessTest$MockConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/UserProfileUpdateAccessTest$TestApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/UserProfileUpdateAccessTest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/UserThumbPublicAccessTest$MockConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/UserThumbPublicAccessTest$TestApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/example/dianzan/UserThumbPublicAccessTest.class" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager">
+    <option name="groupingKeys">
+      <option value="directory" />
+      <option value="repository" />
+    </option>
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_C:/Users/linfu/IdeaProjects/dianzan" value="39Pt4hjP6UPRWypjYO8b1hlNNct" />
+    </persistenceIdMap>
+  </component>
+  <component name="CopilotUserSelectedChatMode">
+    <option name="chatModeId" value="Edit" />
+  </component>
+  <component name="CopilotUserSelectedModel">
+    <selectedModels>
+      <entry key="chat-panel" value="GPT-4.1" />
+      <entry key="agent-panel" value="GPT-4.1" />
+    </selectedModels>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+        <option value="Interface" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="PUSH_TAGS">
+      <GitPushTagMode>
+        <option name="argument" value="--tags" />
+        <option name="title" value="All" />
+      </GitPushTagMode>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="SIGN_OFF_COMMIT" value="true" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;linfu2004&quot;
+  }
+}</component>
+  <component name="GithubDefaultAccount">
+    <option name="defaultAccountId" value="6f0000f8-4bb1-4a27-88ca-4513b6b90730" />
+  </component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/yussyharrisenbyr/ZAN.git",
+    "accountId": "6f0000f8-4bb1-4a27-88ca-4513b6b90730"
+  }
+}]]></component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="39Pt4hjP6UPRWypjYO8b1hlNNct" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "JUnit.DianzanApplication.executor": "Run",
+    "JUnit.DianzanApplicationTests.executor": "Run",
+    "Maven.dianzan [clean].executor": "Run",
+    "Maven.dianzan [compile].executor": "Run",
+    "Maven.dianzan [org.apache.maven.plugins:maven-clean-plugin:3.4.1:clean].executor": "Run",
+    "Maven.dianzan [org.apache.maven.plugins:maven-clean-plugin:3.4.1:help].executor": "Run",
+    "Maven.dianzan [org.apache.maven.plugins:maven-install-plugin:3.1.4:help].executor": "Run",
+    "Maven.dianzan [org.apache.maven.plugins:maven-install-plugin:3.1.4:install-file].executor": "Run",
+    "Maven.dianzan [org.apache.maven.plugins:maven-install-plugin:3.1.4:install].executor": "Run",
+    "Maven.dianzan [package].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.DianzanApplication.executor": "Run",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_directory_selection": "C:/Users/linfu/IdeaProjects/dianzan/src/test/java",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "项目",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "tidb",
+      "redis",
+      "mysql"
+    ]
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\linfu\IdeaProjects\dianzan\src\main\resources\static" />
+      <recent name="C:\Users\linfu\IdeaProjects\dianzan\src\main\resources\mapper" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.example.dianzan" />
+      <recent name="com.example.dianzan.listener.thumb" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Spring Boot.DianzanApplication">
+    <configuration name="DianzanApplication" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="dianzan" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.dianzan.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.example.dianzan" />
+      <option name="MAIN_CLASS_NAME" value="com.example.dianzan.DianzanApplication" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="DianzanApplicationTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="dianzan" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.dianzan.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.example.dianzan" />
+      <option name="MAIN_CLASS_NAME" value="com.example.dianzan.DianzanApplicationTests" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="DianzanApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="dianzan" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.dianzan.DianzanApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.DianzanApplication" />
+        <item itemvalue="JUnit.DianzanApplicationTests" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-cffe25b9f5b3-intellij.indexing.shared.core-IU-253.28294.334" />
+        <option value="bundled-js-predefined-d6986cc7102b-c7e53b3be11b-JavaScript-IU-253.28294.334" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration>C:\Users\linfu\AppData\Roaming\Subversion</configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="7d384269-ba3f-4025-97a0-03e7068fcf3f" name="更改" comment="" />
+      <created>1770609346839</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1770609346839</updated>
+      <workItem from="1770609347861" duration="72458000" />
+      <workItem from="1771137764386" duration="6631000" />
+      <workItem from="1771590297724" duration="39655000" />
+      <workItem from="1772267663272" duration="5553000" />
+      <workItem from="1772504315533" duration="1872000" />
+      <workItem from="1772506214210" duration="7043000" />
+      <workItem from="1772960313990" duration="48623000" />
+      <workItem from="1773154793403" duration="6828000" />
+      <workItem from="1773195477527" duration="6491000" />
+      <workItem from="1773202073489" duration="297000" />
+      <workItem from="1773202405300" duration="90139000" />
+      <workItem from="1773370715214" duration="46643000" />
+      <workItem from="1773449351275" duration="1435000" />
+      <workItem from="1773452071439" duration="10373000" />
+      <workItem from="1773463904204" duration="303000" />
+      <workItem from="1773464243486" duration="774000" />
+      <workItem from="1773465069318" duration="433000" />
+      <workItem from="1773465513043" duration="26343000" />
+    </task>
+    <task id="LOCAL-00001" summary="完成点赞功能">
+      <option name="closed" value="true" />
+      <created>1770621954733</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1770621954734</updated>
+    </task>
+    <task id="LOCAL-00002" summary="转移到redis">
+      <option name="closed" value="true" />
+      <created>1770627403931</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1770627403931</updated>
+    </task>
+    <task id="LOCAL-00003" summary="转移到redis">
+      <option name="closed" value="true" />
+      <created>1773163761135</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1773163761135</updated>
+    </task>
+    <task id="LOCAL-00004" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773163786428</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1773163786428</updated>
+    </task>
+    <task id="LOCAL-00005" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773199112594</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1773199112595</updated>
+    </task>
+    <task id="LOCAL-00006" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773199125891</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1773199125891</updated>
+    </task>
+    <task id="LOCAL-00007" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773211326327</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1773211326327</updated>
+    </task>
+    <task id="LOCAL-00008" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773371316786</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1773371316788</updated>
+    </task>
+    <task id="LOCAL-00009" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773371891087</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1773371891087</updated>
+    </task>
+    <task id="LOCAL-00010" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773372721929</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1773372721929</updated>
+    </task>
+    <task id="LOCAL-00011" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773391130242</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1773391130242</updated>
+    </task>
+    <task id="LOCAL-00012" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773393261465</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1773393261465</updated>
+    </task>
+    <task id="LOCAL-00013" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773400079498</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1773400079499</updated>
+    </task>
+    <task id="LOCAL-00014" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773400092742</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1773400092743</updated>
+    </task>
+    <task id="LOCAL-00015" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773401998077</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1773401998078</updated>
+    </task>
+    <task id="LOCAL-00016" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773403094301</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1773403094301</updated>
+    </task>
+    <task id="LOCAL-00017" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773404129519</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1773404129519</updated>
+    </task>
+    <task id="LOCAL-00018" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773416307275</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1773416307275</updated>
+    </task>
+    <task id="LOCAL-00019" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773468894671</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1773468894671</updated>
+    </task>
+    <task id="LOCAL-00020" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773468904578</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1773468904578</updated>
+    </task>
+    <task id="LOCAL-00021" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773482283225</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1773482283225</updated>
+    </task>
+    <task id="LOCAL-00022" summary="基本结构">
+      <option name="closed" value="true" />
+      <created>1773500891295</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1773500891295</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="完成点赞功能" />
+    <MESSAGE value="转移到redis" />
+    <MESSAGE value="基本结构" />
+    <option name="LAST_COMMIT_MESSAGE" value="基本结构" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>

@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>博客详情</title>
+  <link rel="stylesheet" href="/common-navbar.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1e80ff;
+      --primary-hover: #1168d4;
+      --bg: #f5f5f5;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --radius: 18px;
+      --shadow: 0 8px 24px rgba(17,24,39,.04);
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── Layout ── */
+    .page { max-width: 1160px; margin: 0 auto; padding: calc(var(--navbar-height) + 28px) 20px 56px; display: flex; gap: 20px; align-items: flex-start; }
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+    .sidebar { width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Card base ── */
+    .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border); }
+
+    /* ── Article ── */
+    .article-media-section { padding: 24px 24px 0; }
+    .article-media-stage {
+      position: relative;
+      width: min(100%, 980px);
+      margin: 0 auto;
+      aspect-ratio: 16 / 10;
+      max-height: min(62vh, 520px);
+      border-radius: 18px;
+      overflow: hidden;
+      background: #f8fafc;
+    }
+    .cover {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: #f8fafc;
+    }
+    .cover-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      padding: 0;
+      border: none;
+      background: #f8fafc;
+      cursor: zoom-in;
+    }
+    .article-media-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 56px;
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-size: 28px;
+      background: rgba(17, 24, 39, .5);
+      cursor: pointer;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s ease, transform .18s ease;
+    }
+    .article-media-nav:hover {
+      background: rgba(17, 24, 39, .72);
+      transform: translateY(-50%) scale(1.02);
+    }
+    .article-media-nav.prev { left: 12px; }
+    .article-media-nav.next { right: 12px; }
+    .article-media-nav.hidden { display: none; }
+    .article-media-counter {
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: #fff;
+      background: rgba(17, 24, 39, .58);
+      letter-spacing: .04em;
+      z-index: 2;
+    }
+    .article-body { padding: 30px 34px; }
+    .article-title { font-size: 30px; font-weight: 700; line-height: 1.28; margin-bottom: 14px; letter-spacing: .01em; }
+    .article-meta {
+      display: flex; align-items: center; gap: 16px;
+      color: var(--muted); font-size: 13px;
+      margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border);
+    }
+    .meta-author {
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer; color: inherit;
+    }
+    .meta-author:hover { color: var(--text); }
+    .meta-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 13px; font-weight: 700; flex-shrink: 0;
+    }
+    .article-content { font-size: 16px; line-height: 1.95; color: #1f2937; white-space: pre-wrap; }
+    .article-thumb {
+      margin-top: 30px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .thumb-btn,
+    .favorite-btn {
+      padding: 10px 30px; border-radius: 999px; border: 1px solid #d1d5db;
+      background: #fff; font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; gap: 8px; color: #374151;
+      transition: all .18s;
+    }
+    .thumb-btn {
+      color: #9ca3af;
+    }
+    .thumb-btn:hover,
+    .favorite-btn:hover { border-color: #9ca3af; color: #111827; background: #f9fafb; transform: translateY(-1px); }
+    .thumb-btn:hover {
+      color: #6b7280;
+    }
+    .thumb-btn.liked { border-color: #fca5a5; color: #ef4444; background: #fef2f2; }
+    .thumb-btn.liked:hover { color: #ef4444; border-color: #f87171; background: #fee2e2; }
+    .thumb-btn .heart-icon-svg { width: 20px; height: 20px; color: currentColor; flex-shrink: 0; }
+    .favorite-btn.favorited { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
+
+    /* ── Comments ── */
+    .comments { padding: 26px 32px; }
+    .comments h2 { font-size: 17px; font-weight: 700; margin-bottom: 20px; }
+    .comment-form textarea {
+      width: 100%; padding: 12px 14px; border: 1px solid var(--border);
+      border-radius: 10px; font-size: 14px; resize: vertical; min-height: 80px;
+      outline: none; font-family: inherit; transition: border-color .2s;
+      background: #fcfcfc;
+    }
+    .comment-form textarea:focus { border-color: #9ca3af; background: #fff; }
+    .comment-form-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .reply-hint { font-size: 12px; color: var(--muted); }
+    .reply-hint span { color: var(--text); font-weight: 600; }
+    .reply-hint button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; margin-left: 4px; }
+    .btn-submit {
+      padding: 8px 20px; background: var(--primary); color: #fff;
+      border: none; border-radius: 999px; font-size: 14px; cursor: pointer; transition: background .2s;
+    }
+    .btn-submit:hover { background: var(--primary-hover); }
+    .btn-submit:disabled { opacity: .5; cursor: default; }
+    .comment-list { margin-top: 20px; }
+    .comment-item { padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .comment-item:last-child { border-bottom: none; }
+    .comment-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .comment-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .comment-author { font-weight: 600; font-size: 13px; }
+    .comment-reply-to { font-size: 12px; color: var(--muted); }
+    .comment-reply-to span { color: var(--primary); }
+    .comment-time { font-size: 11px; color: var(--muted); margin-left: auto; }
+    .comment-content { font-size: 14px; line-height: 1.7; color: #1f2937; padding-left: 36px; }
+    .reply-btn { background: none; border: none; color: #3b82f6; font-size: 12px; cursor: pointer; padding: 2px 6px; border-radius: 4px; margin-left: 36px; margin-top: 4px; }
+    .reply-btn:hover { background: #f3f4f6; }
+    .comment-children { margin-top: 10px; padding-left: 24px; border-left: 2px solid var(--border); }
+    .comment-children .comment-item { padding: 10px 0; }
+    .no-comments { text-align: center; padding: 32px 0; color: var(--muted); font-size: 14px; }
+    .comment-pagination { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+    .comment-pagination button {
+      padding: 5px 12px; border: 1px solid var(--border); border-radius: 8px;
+      background: #fff; cursor: pointer; font-size: 13px;
+    }
+    .comment-pagination button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .comment-pagination button:disabled { opacity: .4; cursor: default; }
+
+    /* ── Sidebar cards ── */
+    .sidebar-card { padding: 18px; }
+    .sidebar-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--text); }
+
+    /* Author card */
+    .author-info { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; cursor: pointer; }
+    .author-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 18px; font-weight: 700; flex-shrink: 0;
+    }
+    .author-name { font-size: 15px; font-weight: 700; }
+    .author-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .author-bio { font-size: 13px; color: #374151; line-height: 1.6; margin-bottom: 14px; }
+    .author-stats { display: flex; gap: 16px; }
+    .author-stat { text-align: center; }
+    .author-stat .num { font-size: 16px; font-weight: 700; color: var(--text); }
+    .author-stat .label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .author-card-clickable { cursor: pointer; }
+    .author-card-clickable:hover { box-shadow: 0 14px 30px rgba(17,24,39,.08); border-color: #d1d5db; }
+
+    /* Hot articles */
+    .hot-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+    .hot-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .hot-item:hover .hot-title { color: #000; }
+    .hot-rank {
+      width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+      background: #f3f4f6; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 1px;
+    }
+    .hot-rank.top { background: var(--primary); color: #fff; }
+    .hot-title { font-size: 13px; line-height: 1.5; color: var(--text); flex: 1; }
+    .hot-likes { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .hot-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 12px 0; }
+
+    /* Tags */
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      background: #f3f4f6; color: #374151; cursor: pointer;
+    }
+    .tag:hover { background: #e5e7eb; color: #111827; }
+
+    /* State */
+    .state-box { text-align: center; padding: 80px 20px; color: var(--muted); font-size: 15px; }
+
+    /* ── Image viewer ── */
+    .image-viewer {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, .88);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 24px;
+    }
+    .image-viewer.show { display: flex; }
+    .image-viewer-dialog {
+      position: relative;
+      width: min(1100px, 100%);
+      height: min(82vh, 860px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(17, 24, 39, .36);
+      backdrop-filter: blur(8px);
+    }
+    .image-viewer-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+      user-select: none;
+    }
+    .image-viewer-close,
+    .image-viewer-nav {
+      position: absolute;
+      border: none;
+      color: #fff;
+      background: rgba(17, 24, 39, .58);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s ease, transform .18s ease;
+    }
+    .image-viewer-close:hover,
+    .image-viewer-nav:hover {
+      background: rgba(17, 24, 39, .78);
+      transform: translateY(-1px);
+    }
+    .image-viewer-close {
+      top: 18px;
+      right: 18px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      font-size: 24px;
+      z-index: 2;
+    }
+    .image-viewer-nav {
+      top: 50%;
+      transform: translateY(-50%);
+      width: 46px;
+      height: 58px;
+      border-radius: 14px;
+      font-size: 28px;
+    }
+    .image-viewer-nav.prev { left: 18px; }
+    .image-viewer-nav.next { right: 18px; }
+    .image-viewer-counter {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      color: #fff;
+      background: rgba(17, 24, 39, .62);
+      letter-spacing: .04em;
+    }
+
+    @media (max-width: 980px) {
+      .page { padding: calc(var(--navbar-height) + 20px) 14px 40px; display: block; }
+      .sidebar { width: 100%; margin-top: 14px; }
+      .article-body { padding: 24px 20px; }
+      .comments { padding: 22px 20px; }
+      .article-title { font-size: 25px; }
+      .article-meta { flex-wrap: wrap; gap: 10px 14px; }
+      .article-media-nav {
+        width: 40px;
+        height: 52px;
+        font-size: 24px;
+      }
+    }
+    @media (max-width: 640px) {
+      .article-title { font-size: 22px; }
+      .thumb-btn,
+      .favorite-btn { width: 100%; justify-content: center; }
+      .article-thumb { gap: 10px; }
+      .comment-content,
+      .reply-btn { margin-left: 0; padding-left: 0; }
+      .comment-content { padding-left: 0; }
+      .comment-children { padding-left: 12px; }
+      .article-media-nav {
+        width: 36px;
+        height: 46px;
+        font-size: 22px;
+      }
+      .article-media-nav.prev { left: 8px; }
+      .article-media-nav.next { right: 8px; }
+      .image-viewer { padding: 12px; }
+      .image-viewer-nav {
+        width: 40px;
+        height: 52px;
+        font-size: 24px;
+      }
+      .image-viewer-nav.prev { left: 10px; }
+      .image-viewer-nav.next { right: 10px; }
+      .image-viewer-close {
+        top: 10px;
+        right: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="navbar-brand" onclick="goHome()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+      </svg>
+      博客广场
+    </div>
+    <div class="navbar-search">
+      <span class="search-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="M20 20l-3.5-3.5"></path>
+        </svg>
+      </span>
+      <input type="text" placeholder="搜索探索更多内容" onkeydown="if(event.key==='Enter') SiteNavigation.navigateDiscovery(this.value)">
+    </div>
+    <div class="navbar-right"></div>
+  </div>
+</nav>
+
+<div class="page">
+  <!-- 主内容 -->
+  <div class="main">
+    <div id="articleWrap"><div class="card"><div class="state-box">加载中…</div></div></div>
+    <div class="card" id="commentsWrap" style="display:none">
+      <div class="comments">
+        <h2 id="commentTitle">评论</h2>
+        <div class="comment-form">
+          <div class="reply-hint" id="replyHint" style="display:none"></div>
+          <textarea id="commentInput" placeholder="写下你的评论…"></textarea>
+          <div class="comment-form-footer">
+            <span></span>
+            <button class="btn-submit" id="commentSubmit" onclick="submitComment()">发表评论</button>
+          </div>
+        </div>
+        <div class="comment-list" id="commentList"></div>
+        <div id="commentPager"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <!-- 作者卡片 -->
+    <div class="card sidebar-card" id="authorCard" style="display:none">
+      <div class="author-info">
+        <div class="author-avatar" id="authorAvatar">A</div>
+        <div>
+          <div class="author-name" id="authorName">作者</div>
+          <div class="author-sub" id="authorSub">博主</div>
+        </div>
+      </div>
+      <div class="author-bio" id="authorBio">热爱分享，持续创作优质内容。</div>
+      <div class="author-stats">
+        <div class="author-stat"><div class="num" id="authorArticles">—</div><div class="label">文章</div></div>
+        <div class="author-stat"><div class="num" id="authorLikes">—</div><div class="label">获赞</div></div>
+        <div class="author-stat"><div class="num" id="authorFavorites">—</div><div class="label">收藏</div></div>
+      </div>
+    </div>
+
+    <!-- 热门文章 -->
+    <div class="card sidebar-card">
+      <h3>热门文章</h3>
+      <div id="hotList" class="hot-list-state">加载中…</div>
+    </div>
+
+    <!-- 标签 -->
+    <div class="card sidebar-card">
+      <h3>标签</h3>
+      <div class="tag-list">
+        <span class="tag">Java</span>
+        <span class="tag">Spring Boot</span>
+        <span class="tag">Redis</span>
+        <span class="tag">MySQL</span>
+        <span class="tag">微服务</span>
+        <span class="tag">算法</span>
+        <span class="tag">前端</span>
+        <span class="tag">架构设计</span>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="image-viewer" id="imageViewer" aria-hidden="true">
+  <div class="image-viewer-dialog">
+    <button class="image-viewer-close" type="button" aria-label="关闭" onclick="closeImageViewer()">×</button>
+    <button class="image-viewer-nav prev" id="imageViewerPrev" type="button" aria-label="上一张" onclick="changeViewerImage(-1)">‹</button>
+    <img class="image-viewer-img" id="imageViewerImg" alt="博客图片预览">
+    <button class="image-viewer-nav next" id="imageViewerNext" type="button" aria-label="下一张" onclick="changeViewerImage(1)">›</button>
+    <div class="image-viewer-counter" id="imageViewerCounter">1 / 1</div>
+  </div>
+</div>
+
+<script src="/site-navigation.js"></script>
+<script src="/avatar-render.js"></script>
+<script>
+  function goHome() {
+    if (window.SiteNavigation) {
+      SiteNavigation.navigate('/');
+      return;
+    }
+    window.location.href = '/';
+  }
+
+  function redirectToLogin() {
+    if (window.SiteNavigation?.requestLogin) {
+      SiteNavigation.requestLogin({
+        returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}`
+      });
+      return;
+    }
+    goHome();
+  }
+
+  function isLoginRequiredResponse(payload, httpStatus = 0) {
+    return httpStatus === 401
+      || payload?.code === 401
+      || payload?.code === 40100
+      || payload?.message === '请先登录';
+  }
+
+  if (window.SiteNavigation) {
+    SiteNavigation.onIdle(() => {
+      SiteNavigation.warmRoutes(['/']);
+    });
+  }
+
+  const params = new URLSearchParams(location.search);
+  // 兼容两种参数：旧稿使用 id，新页面/通知页使用 blogId
+  const blogId = params.get('blogId') || params.get('id');
+  const BLOG_THUMB_SYNC_KEY = 'blogThumbSync:v1';
+  let replyTo = null;
+  let currentPage = 1;
+  const pageSize = 10;
+  let thumbState = { hasThumb: false, count: 0, pending: false };
+  let favoriteState = { hasFavorite: false, count: 0, pending: false };
+  let viewerImages = [];
+  let viewerIndex = 0;
+  let articleMediaIndex = 0;
+  let articleMediaTitle = '博客';
+
+  loadHotList();
+  window.addEventListener('storage', handleThumbSyncStorage);
+
+  if (!blogId) {
+    document.getElementById('articleWrap').innerHTML = '<div class="card"><div class="state-box">博客不存在</div></div>';
+  } else {
+    fetch(`/blog/get?blogId=${blogId}`, { credentials: 'include' })
+      .then(r => r.json())
+      .then(res => {
+        if (res.code !== 0 || !res.data) {
+          document.getElementById('articleWrap').innerHTML = '<div class="card"><div class="state-box">博客不存在或加载失败</div></div>';
+          return;
+        }
+        const b = res.data;
+        document.title = b.title || '博客详情';
+        articleMediaTitle = b.title || '博客';
+
+        const coverUrl = normalizeMediaUrl(b.coverImg);
+        const previewImages = buildPreviewImages(coverUrl, b.imageList);
+        viewerImages = previewImages;
+        articleMediaIndex = 0;
+        const media = renderArticleMedia(previewImages, articleMediaTitle);
+        const date = b.createTime ? new Date(b.createTime).toLocaleDateString('zh-CN') : '';
+        const authorInitial = (b.authorName || b.title || '?')[0].toUpperCase();
+        const metaAuthorAvatar = renderAvatarMarkup('meta-avatar', { authorAvatarUrl: b.authorAvatarUrl, authorName: b.authorName, avatarText: authorInitial });
+
+        const initialCount = Number(b.thumbCount || 0);
+        const initialFavoriteCount = Number(b.favoriteCount || 0);
+        document.getElementById('articleWrap').innerHTML = `
+          <div class="card">
+            ${media}
+            <div class="article-body">
+              <div class="article-title">${esc(b.title || '无标题')}</div>
+              <div class="article-meta">
+                <div class="meta-author" ${b.userId ? `data-user-id="${escAttr(b.userId)}"` : ''}>
+                  ${metaAuthorAvatar}
+                  <span>${esc(b.authorName || '匿名作者')}</span>
+                </div>
+                ${date ? `<span>${date}</span>` : ''}
+                <span id="metaLikes">${initialCount} 点赞</span>
+              </div>
+              <div class="article-content">${esc(b.content || '')}</div>
+              <div class="article-thumb">
+                <button class="thumb-btn ${b.hasThumb ? 'liked' : ''}" id="thumbBtn" onclick="toggleThumb()">
+                  ${renderRoundedHeartIcon('heart-icon')}
+                  <span id="thumbCount">${initialCount}</span> 点赞
+                </button>
+                <button class="favorite-btn ${b.hasFavorite ? 'favorited' : ''}" id="favoriteBtn" onclick="toggleFavorite()">
+                  <span id="favoriteIcon">${b.hasFavorite ? '⭐' : '☆'}</span>
+                  <span id="favoriteCount">${initialFavoriteCount}</span> 收藏
+                </button>
+              </div>
+            </div>
+          </div>`;
+
+        thumbState = { hasThumb: !!b.hasThumb, count: initialCount, pending: false };
+        favoriteState = { hasFavorite: !!b.hasFavorite, count: initialFavoriteCount, pending: false };
+
+        // 填充作者侧边栏
+        const ac = document.getElementById('authorCard');
+        ac.style.display = 'block';
+        if (b.userId) {
+          ac.classList.add('author-card-clickable');
+          ac.onclick = () => openProfile(b.userId);
+        }
+        applyAvatarToElement(document.getElementById('authorAvatar'), { authorAvatarUrl: b.authorAvatarUrl, authorName: b.authorName, avatarText: authorInitial });
+        document.getElementById('authorName').textContent = b.authorName || '匿名作者';
+        document.getElementById('authorSub').textContent = `UID: ${b.userId || '—'}`;
+        document.getElementById('authorArticles').textContent = formatStat(b.authorArticleCount);
+        document.getElementById('authorLikes').textContent = formatStat(b.authorLikeCount);
+        document.getElementById('authorFavorites').textContent = formatStat(b.authorFavoriteCount);
+
+        const metaAuthor = document.querySelector('.meta-author[data-user-id]');
+        if (metaAuthor) {
+          metaAuthor.onclick = () => openProfile(metaAuthor.dataset.userId);
+        }
+
+        updateArticleMedia();
+
+        document.getElementById('commentsWrap').style.display = 'block';
+        loadComments(1);
+      })
+      .catch(() => {
+        document.getElementById('articleWrap').innerHTML = '<div class="card"><div class="state-box">加载失败，请刷新重试</div></div>';
+      });
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function escAttr(str) {
+    return esc(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function renderRoundedHeartIcon(className = '') {
+    const classes = ['heart-icon-svg', className].filter(Boolean).join(' ');
+    return `<svg class="${classes}" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35Z"/></svg>`;
+  }
+
+  function emitThumbStateSync(hasThumb, thumbCount) {
+    if (!blogId || !window.localStorage) return;
+    try {
+      window.localStorage.setItem(BLOG_THUMB_SYNC_KEY, JSON.stringify({
+        blogId: String(blogId),
+        hasThumb: !!hasThumb,
+        thumbCount: Number(thumbCount || 0),
+        ts: Date.now()
+      }));
+    } catch (e) {
+    }
+  }
+
+  function handleThumbSyncStorage(event) {
+    if (event.key !== BLOG_THUMB_SYNC_KEY || !event.newValue || !blogId) return;
+    try {
+      const payload = JSON.parse(event.newValue);
+      if (!payload?.blogId || String(payload.blogId) !== String(blogId)) return;
+      thumbState.hasThumb = !!payload.hasThumb;
+      thumbState.count = Number(payload.thumbCount || 0);
+      updateThumbBtn();
+    } catch (e) {
+    }
+  }
+
+  function normalizeMediaUrl(url) {
+    const normalized = String(url || '').trim();
+    return normalized || '';
+  }
+
+  function normalizeImageList(list) {
+    if (!Array.isArray(list)) return [];
+    const seen = new Set();
+    return list.map(url => normalizeMediaUrl(url)).filter(url => {
+      if (!url || seen.has(url)) return false;
+      seen.add(url);
+      return true;
+    });
+  }
+
+  function buildPreviewImages(coverUrl, imageList) {
+    const articleImages = normalizeImageList(imageList);
+    // 博客详情优先展示正文原图；仅当正文无图时回退到封面。
+    if (articleImages.length) return articleImages;
+    return coverUrl ? [coverUrl] : [];
+  }
+
+  function renderArticleMedia(previewImages, title) {
+    if (!previewImages.length) return '';
+    const total = previewImages.length;
+    const imageUrl = escAttr(previewImages[0]);
+    const imageTitle = escAttr(title || '博客');
+    const hideNavClass = total > 1 ? '' : ' hidden';
+    return `
+      <div class="article-media-section">
+        <div class="article-media-stage">
+          <button class="article-media-nav prev${hideNavClass}" id="articleMediaPrev" type="button" aria-label="上一张" onclick="changeArticleMedia(-1, event)">‹</button>
+          <button class="cover-trigger" type="button" onclick="openCurrentImageViewer()">
+            <img class="cover" id="articleMediaImg" src="${imageUrl}" alt="${imageTitle} 图片 1" loading="lazy" onerror="this.closest('.article-media-section').style.display='none'">
+          </button>
+          <button class="article-media-nav next${hideNavClass}" id="articleMediaNext" type="button" aria-label="下一张" onclick="changeArticleMedia(1, event)">›</button>
+          <div class="article-media-counter" id="articleMediaCounter">1 / ${total}</div>
+        </div>
+      </div>`;
+  }
+
+  function updateArticleMedia() {
+    const image = document.getElementById('articleMediaImg');
+    if (!image || !viewerImages.length) return;
+    const total = viewerImages.length;
+    articleMediaIndex = (articleMediaIndex + total) % total;
+    image.src = viewerImages[articleMediaIndex];
+    image.alt = `${articleMediaTitle} 图片 ${articleMediaIndex + 1}`;
+    const counter = document.getElementById('articleMediaCounter');
+    if (counter) counter.textContent = `${articleMediaIndex + 1} / ${total}`;
+    const showNav = total > 1;
+    const prevBtn = document.getElementById('articleMediaPrev');
+    const nextBtn = document.getElementById('articleMediaNext');
+    if (prevBtn) prevBtn.classList.toggle('hidden', !showNav);
+    if (nextBtn) nextBtn.classList.toggle('hidden', !showNav);
+  }
+
+  function changeArticleMedia(step, event) {
+    if (event) event.stopPropagation();
+    if (viewerImages.length <= 1) return;
+    articleMediaIndex += step;
+    updateArticleMedia();
+  }
+
+  function openCurrentImageViewer() {
+    openImageViewer(articleMediaIndex);
+  }
+
+  function renderAvatarMarkup(className, data) {
+    if (window.SiteAvatar?.renderHtml) {
+      return SiteAvatar.renderHtml(className, data);
+    }
+    const text = esc((data?.avatarText || data?.username || data?.authorName || 'U').charAt(0).toUpperCase());
+    return `<div class="${className}">${text}</div>`;
+  }
+
+  function applyAvatarToElement(element, data) {
+    if (!element) return;
+    if (window.SiteAvatar?.apply) {
+      SiteAvatar.apply(element, data);
+      return;
+    }
+    element.textContent = (data?.avatarText || data?.username || data?.authorName || 'U').charAt(0).toUpperCase();
+  }
+
+  function formatStat(value) {
+    if (value === undefined || value === null) return '—';
+    const num = Number(value);
+    if (Number.isNaN(num)) return '—';
+    if (num >= 10000) return (num / 10000).toFixed(1).replace(/\.0$/, '') + 'w';
+    return num.toLocaleString('zh-CN');
+  }
+
+  function openProfile(userId, newTab = false) {
+    if (!userId) return;
+    const url = `/profile.html?userId=${encodeURIComponent(userId)}`;
+    if (newTab) {
+      window.open(url, '_blank');
+    } else {
+      if (window.SiteNavigation) {
+        SiteNavigation.navigate(url);
+        return;
+      }
+      window.location.href = url;
+    }
+  }
+
+  function openImageViewer(index) {
+    if (!viewerImages.length) return;
+    const viewer = document.getElementById('imageViewer');
+    viewer.classList.add('show');
+    viewer.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    showViewerImage(index);
+  }
+
+  function closeImageViewer() {
+    const viewer = document.getElementById('imageViewer');
+    viewer.classList.remove('show');
+    viewer.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  function showViewerImage(index) {
+    if (!viewerImages.length) return;
+    const total = viewerImages.length;
+    viewerIndex = (index + total) % total;
+    document.getElementById('imageViewerImg').src = viewerImages[viewerIndex];
+    document.getElementById('imageViewerCounter').textContent = `${viewerIndex + 1} / ${total}`;
+    const showNav = total > 1;
+    document.getElementById('imageViewerPrev').style.display = showNav ? 'inline-flex' : 'none';
+    document.getElementById('imageViewerNext').style.display = showNav ? 'inline-flex' : 'none';
+  }
+
+  function changeViewerImage(step) {
+    showViewerImage(viewerIndex + step);
+  }
+
+  document.getElementById('imageViewer').addEventListener('click', (event) => {
+    if (event.target.id === 'imageViewer') {
+      closeImageViewer();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    const viewer = document.getElementById('imageViewer');
+    if (!viewer.classList.contains('show')) return;
+    if (event.key === 'Escape') {
+      closeImageViewer();
+      return;
+    }
+    if (event.key === 'ArrowLeft') {
+      changeViewerImage(-1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      changeViewerImage(1);
+    }
+  });
+
+  function loadHotList(limit = 5) {
+    const hotList = document.getElementById('hotList');
+    hotList.innerHTML = '<div class="hot-empty">加载中…</div>';
+    fetch(`/blog/hot?limit=${limit}`, { credentials: 'include' })
+      .then(async r => {
+        let payload = {};
+        try {
+          payload = await r.json();
+        } catch (e) {
+          payload = { code: -1, message: '数据解析异常' };
+        }
+        if (r.status === 401 || payload.code === 401) {
+          hotList.innerHTML = '<div class="hot-empty">请登录方能查看</div>';
+          return;
+        }
+        if (payload.code !== 0 || !Array.isArray(payload.data) || payload.data.length === 0) {
+          hotList.innerHTML = '<div class="hot-empty">暂无热门文章</div>';
+          return;
+        }
+        hotList.innerHTML = payload.data.map((item, idx) => renderHotItem(item, idx + 1)).join('');
+      })
+      .catch(() => {
+        hotList.innerHTML = '<div class="hot-empty">加载失败</div>';
+      });
+  }
+
+  function renderHotItem(item, rank) {
+    const blogId = encodeURIComponent(item.blogId);
+    const likes = Number(item.weeklyThumbCount || 0);
+    return `
+      <div class="hot-item" onclick="window.location.href='/blog.html?id=${blogId}'">
+        <div class="hot-rank ${rank <= 3 ? 'top' : ''}">${rank}</div>
+        <div>
+          <div class="hot-title">${esc(item.title || '未命名文章')}</div>
+          <div class="hot-likes">${likes} 点赞</div>
+        </div>
+      </div>`;
+  }
+
+  function loadComments(page) {
+    currentPage = page;
+    fetch(`/comment/list?blogId=${blogId}&page=${page}&size=${pageSize}`, { credentials: 'include' })
+      .then(r => r.json())
+      .then(res => {
+        if (res.code !== 0) return;
+        const { total, list } = res.data;
+        document.getElementById('commentTitle').textContent = `评论 (${total})`;
+        const totalPages = Math.ceil(total / pageSize);
+        document.getElementById('commentList').innerHTML =
+          list.length === 0 ? '<div class="no-comments">暂无评论，来抢沙发吧～</div>' : list.map(renderComment).join('');
+        renderPager(page, totalPages);
+      });
+  }
+
+  function renderComment(c) {
+    const initial = (c.username || 'U')[0].toUpperCase();
+    const children = (c.children || []).map(child => {
+      const ci = (child.username || 'U')[0].toUpperCase();
+      const childAvatar = renderAvatarMarkup('comment-avatar', { userAvatar: child.userAvatar, username: child.username, avatarText: ci });
+      return `<div class="comment-item">
+        <div class="comment-header">
+          ${childAvatar}
+          <span class="comment-author">${esc(child.username || '用户' + child.userId)}</span>
+          ${child.replyToUsername ? `<span class="comment-reply-to">回复 <span>${esc(child.replyToUsername)}</span></span>` : ''}
+          <span class="comment-time">${fmtTime(child.createTime)}</span>
+        </div>
+        <div class="comment-content">${esc(child.content)}</div>
+        <button class="reply-btn js-reply-btn" data-comment-id="${escAttr(child.id)}" data-root-id="${escAttr(c.id)}" data-user-id="${escAttr(child.userId)}" data-username="${escAttr(child.username || '用户' + child.userId)}">回复</button>
+      </div>`;
+    }).join('');
+    const rootAvatar = renderAvatarMarkup('comment-avatar', { userAvatar: c.userAvatar, username: c.username, avatarText: initial });
+    return `<div class="comment-item">
+      <div class="comment-header">
+        ${rootAvatar}
+        <span class="comment-author">${esc(c.username || '用户' + c.userId)}</span>
+        <span class="comment-time">${fmtTime(c.createTime)}</span>
+      </div>
+      <div class="comment-content">${esc(c.content)}</div>
+      <button class="reply-btn js-reply-btn" data-comment-id="${escAttr(c.id)}" data-root-id="${escAttr(c.id)}" data-user-id="${escAttr(c.userId)}" data-username="${escAttr(c.username || '用户' + c.userId)}">回复</button>
+      ${children ? `<div class="comment-children">${children}</div>` : ''}
+    </div>`;
+  }
+
+  function renderPager(page, total) {
+    if (total <= 1) { document.getElementById('commentPager').innerHTML = ''; return; }
+    let html = `<div class="comment-pagination">
+      <button data-page="${page-1}" ${page===1?'disabled':''}>上一页</button>`;
+    for (let i = 1; i <= total; i++)
+      html += `<button data-page="${i}" class="${i===page?'active':''}">${i}</button>`;
+    html += `<button data-page="${page+1}" ${page===total?'disabled':''}>下一页</button></div>`;
+    document.getElementById('commentPager').innerHTML = html;
+    document.querySelectorAll('#commentPager button[data-page]').forEach(btn =>
+      btn.addEventListener('click', () => loadComments(+btn.dataset.page)));
+  }
+
+  function fmtTime(t) {
+    if (!t) return '';
+    return new Date(t).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  }
+
+  function setReply(commentId, rootId, userId, username) {
+    replyTo = { commentId, rootId, userId, username };
+    const hint = document.getElementById('replyHint');
+    hint.innerHTML = `回复 <span>${esc(username)}</span> <button onclick="cancelReply()">✕</button>`;
+    hint.style.display = 'block';
+    document.getElementById('commentInput').focus();
+  }
+
+  function cancelReply() {
+    replyTo = null;
+    document.getElementById('replyHint').style.display = 'none';
+  }
+
+  document.getElementById('commentList').addEventListener('click', (event) => {
+    const btn = event.target.closest('.js-reply-btn');
+    if (!btn) return;
+    setReply(btn.dataset.commentId, btn.dataset.rootId, btn.dataset.userId, btn.dataset.username || '用户');
+  });
+
+  function submitComment() {
+    const input = document.getElementById('commentInput');
+    const content = input.value.trim();
+    if (!content) return;
+    const btn = document.getElementById('commentSubmit');
+    btn.disabled = true;
+    const body = { blogId: blogId, content };
+    if (replyTo) { body.parentId = replyTo.commentId; body.rootId = replyTo.rootId; body.replyToUserId = replyTo.userId; }
+    fetch('/comment/add', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(async r => {
+      let res = {};
+      try {
+        res = await r.json();
+      } catch (e) {
+        res = { code: -1, message: '响应解析失败' };
+      }
+      if (isLoginRequiredResponse(res, r.status)) {
+        redirectToLogin();
+        return;
+      }
+      if (res.code === 0) { input.value = ''; replyTo = null; cancelReply(); loadComments(1); }
+      else alert(res.message || '发表失败');
+    }).finally(() => { btn.disabled = false; });
+  }
+
+  function toggleThumb() {
+    if (thumbState.pending) return;
+    thumbState.pending = true;
+    const wasLiked = thumbState.hasThumb;
+    thumbState.hasThumb = !wasLiked;
+    thumbState.count = Number(thumbState.count || 0) + (wasLiked ? -1 : 1);
+    updateThumbBtn();
+    fetch(wasLiked ? '/thumb/undo' : '/thumb/do', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      // blogId 为 Long，必须按字符串透传，避免 JS Number 精度丢失
+      body: JSON.stringify({ blogId: blogId })
+    }).then(async r => {
+      let res = {};
+      try {
+        res = await r.json();
+      } catch (e) {
+        res = { code: -1, message: '响应解析失败' };
+      }
+      if (isLoginRequiredResponse(res, r.status)) {
+        thumbState.hasThumb = wasLiked;
+        thumbState.count = Number(thumbState.count) + (wasLiked ? 1 : -1);
+        updateThumbBtn();
+        redirectToLogin();
+        return;
+      }
+      if (res.code !== 0 || !res.data) {
+        thumbState.hasThumb = wasLiked;
+        thumbState.count = Number(thumbState.count) + (wasLiked ? 1 : -1);
+        syncThumbStateFromServer();
+        alert(res.message || '操作失败');
+        return;
+      }
+      thumbState.hasThumb = !!res.data.hasThumb;
+      thumbState.count = Number(res.data.thumbCount || 0);
+      updateThumbBtn();
+      emitThumbStateSync(thumbState.hasThumb, thumbState.count);
+      // 异步落库后再回拉一次，避免与首页展示短时反向
+      setTimeout(syncThumbStateFromServer, 500);
+    }).catch(() => { thumbState.hasThumb = wasLiked; thumbState.count = Number(thumbState.count || 0) + (wasLiked ? 1 : -1); })
+    .finally(() => { thumbState.pending = false; updateThumbBtn(); });
+  }
+
+  function syncThumbStateFromServer() {
+    fetch(`/blog/get?blogId=${encodeURIComponent(blogId)}`, { credentials: 'include' })
+      .then(r => r.json())
+      .then(res => {
+        if (res.code !== 0 || !res.data) return;
+        const b = res.data;
+        thumbState.hasThumb = !!b.hasThumb;
+        thumbState.count = Number(b.thumbCount || 0);
+        favoriteState.hasFavorite = !!b.hasFavorite;
+        favoriteState.count = Number(b.favoriteCount || 0);
+        updateThumbBtn();
+        updateFavoriteBtn();
+      })
+      .catch(() => {});
+  }
+
+  function updateThumbBtn() {
+    const btn = document.getElementById('thumbBtn');
+    if (!btn) return;
+    btn.className = 'thumb-btn' + (thumbState.hasThumb ? ' liked' : '');
+    const countVal = Number(thumbState.count || 0);
+    document.getElementById('thumbCount').textContent = countVal;
+    const meta = document.getElementById('metaLikes');
+    if (meta) meta.textContent = `${countVal} 点赞`;
+  }
+
+  function toggleFavorite() {
+    if (favoriteState.pending) return;
+    favoriteState.pending = true;
+    const wasFavorited = favoriteState.hasFavorite;
+    favoriteState.hasFavorite = !wasFavorited;
+    favoriteState.count = Number(favoriteState.count || 0) + (wasFavorited ? -1 : 1);
+    updateFavoriteBtn();
+    fetch(wasFavorited ? '/favorite/undo' : '/favorite/do', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blogId: blogId })
+    }).then(async r => {
+      let res = {};
+      try {
+        res = await r.json();
+      } catch (e) {
+        res = { code: -1, message: '响应解析失败' };
+      }
+      if (isLoginRequiredResponse(res, r.status)) {
+        favoriteState.hasFavorite = wasFavorited;
+        favoriteState.count = Number(favoriteState.count) + (wasFavorited ? 1 : -1);
+        updateFavoriteBtn();
+        redirectToLogin();
+        return;
+      }
+      if (res.code !== 0 || !res.data) {
+        favoriteState.hasFavorite = wasFavorited;
+        favoriteState.count = Number(favoriteState.count) + (wasFavorited ? 1 : -1);
+        syncThumbStateFromServer();
+        alert(res.message || '操作失败');
+        return;
+      }
+      favoriteState.hasFavorite = !!res.data.hasFavorite;
+      favoriteState.count = Number(res.data.favoriteCount || 0);
+      updateFavoriteBtn();
+      const authorFavorites = document.getElementById('authorFavorites');
+      if (authorFavorites) {
+        const delta = favoriteState.hasFavorite === wasFavorited ? 0 : (favoriteState.hasFavorite ? 1 : -1);
+        const current = Number(String(authorFavorites.textContent || '0').replace(/,/g, '')) || 0;
+        authorFavorites.textContent = formatStat(Math.max(0, current + delta));
+      }
+      setTimeout(syncThumbStateFromServer, 500);
+    }).catch(() => {
+      favoriteState.hasFavorite = wasFavorited;
+      favoriteState.count = Number(favoriteState.count || 0) + (wasFavorited ? 1 : -1);
+    }).finally(() => {
+      favoriteState.pending = false;
+      updateFavoriteBtn();
+    });
+  }
+
+  function updateFavoriteBtn() {
+    const btn = document.getElementById('favoriteBtn');
+    if (!btn) return;
+    btn.className = 'favorite-btn' + (favoriteState.hasFavorite ? ' favorited' : '');
+    document.getElementById('favoriteIcon').textContent = favoriteState.hasFavorite ? '⭐' : '☆';
+    document.getElementById('favoriteCount').textContent = Number(favoriteState.count || 0);
+  }
+</script>
+</body>
+</html>

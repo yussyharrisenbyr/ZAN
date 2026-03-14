@@ -1,0 +1,54 @@
+package com.example.dianzan.controller;
+
+import com.example.dianzan.common.BaseResponse;
+import com.example.dianzan.common.ResultUtils;
+import com.example.dianzan.model.dto.thumb.DoThumbRequest;
+import com.example.dianzan.model.entity.User;
+import com.example.dianzan.model.vo.BlogPageVO;
+import com.example.dianzan.model.vo.ThumbActionResponse;
+import com.example.dianzan.service.ThumbService;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import static com.example.dianzan.constant.UserConstant.LOGIN_USER;
+
+@RestController
+@RequestMapping("thumb")
+public class ThumbController {  
+    @Resource
+    private ThumbService thumbService;
+  
+    @GetMapping("/user")
+    public BaseResponse<BlogPageVO> listByUser(@RequestParam(required = false) Long userId,
+                                               @RequestParam(required = false) String cursor,
+                                               @RequestParam(defaultValue = "15") int size,
+                                               HttpServletRequest request) {
+        Long targetUserId = userId;
+        if (targetUserId == null) {
+            User loginUser = (User) request.getSession().getAttribute(LOGIN_USER);
+            if (loginUser == null) {
+                return ResultUtils.error(40100, "请先登录");
+            }
+            targetUserId = loginUser.getId();
+        }
+        return ResultUtils.success(thumbService.listUserThumbBlogs(targetUserId, cursor, size, request));
+    }
+
+    @PostMapping("/do")
+    public BaseResponse<ThumbActionResponse> doThumb(@RequestBody DoThumbRequest doThumbRequest, HttpServletRequest request) {
+        ThumbActionResponse resp = thumbService.doThumb(doThumbRequest, request);
+        return ResultUtils.success(resp);
+    }
+    @PostMapping("/undo")
+    public BaseResponse<ThumbActionResponse> undoThumb(@RequestBody DoThumbRequest doThumbRequest, HttpServletRequest request) {
+        ThumbActionResponse resp = thumbService.undoThumb(doThumbRequest, request);
+        return ResultUtils.success(resp);
+    }
+
+}

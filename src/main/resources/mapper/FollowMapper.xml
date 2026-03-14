@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.dianzan.mapper.FollowMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.dianzan.model.entity.Follow">
+        <id property="id" column="id" />
+        <result property="followerId" column="followerId" />
+        <result property="followeeId" column="followeeId" />
+        <result property="createTime" column="createTime" />
+    </resultMap>
+
+    <delete id="deleteByFollowerAndFollowee">
+        DELETE FROM follow
+        WHERE followerId = #{followerId}
+          AND followeeId = #{followeeId}
+    </delete>
+
+    <select id="selectFolloweeIds" resultType="long">
+        SELECT followeeId
+        FROM follow
+        WHERE followerId = #{followerId}
+        ORDER BY createTime DESC, id DESC
+    </select>
+
+    <select id="selectFollowerIds" resultType="long">
+        SELECT followerId
+        FROM follow
+        WHERE followeeId = #{followeeId}
+        ORDER BY createTime DESC, id DESC
+    </select>
+
+    <select id="selectExistingFolloweeIds" resultType="long">
+        SELECT followeeId
+        FROM follow
+        WHERE followerId = #{followerId}
+          AND followeeId IN
+        <foreach collection="candidateIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectExistingFollowerIds" resultType="long">
+        SELECT followerId
+        FROM follow
+        WHERE followeeId = #{followeeId}
+          AND followerId IN
+        <foreach collection="candidateIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectFolloweeCount" resultType="long">
+        SELECT COUNT(*) FROM follow WHERE followerId = #{followerId}
+    </select>
+
+    <select id="selectFollowerCount" resultType="long">
+        SELECT COUNT(*) FROM follow WHERE followeeId = #{followeeId}
+    </select>
+
+    <sql id="FolloweeListFilters">
+        <if test="keyword != null and keyword != ''">
+            AND (u.username LIKE CONCAT('%', #{keyword}, '%')
+            OR u.userAccount LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="mutualOnly">
+            <choose>
+                <when test="viewerId != null">
+                    AND EXISTS (
+                        SELECT 1 FROM follow vf
+                        WHERE vf.followerId = #{viewerId}
+                          AND vf.followeeId = u.id
+                    )
+                    AND EXISTS (
+                        SELECT 1 FROM follow vr
+                        WHERE vr.followerId = u.id
+                          AND vr.followeeId = #{viewerId}
+                    )
+                </when>
+                <otherwise>
+                    AND 1 = 0
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+
+    <sql id="FollowerListFilters">
+        <if test="keyword != null and keyword != ''">
+            AND (u.username LIKE CONCAT('%', #{keyword}, '%')
+            OR u.userAccount LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="mutualOnly">
+            <choose>
+                <when test="viewerId != null">
+                    AND EXISTS (
+                        SELECT 1 FROM follow vf
+                        WHERE vf.followerId = #{viewerId}
+                          AND vf.followeeId = u.id
+                    )
+                    AND EXISTS (
+                        SELECT 1 FROM follow vr
+                        WHERE vr.followerId = u.id
+                          AND vr.followeeId = #{viewerId}
+                    )
+                </when>
+                <otherwise>
+                    AND 1 = 0
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+
+    <select id="countFolloweeUsers" resultType="long">
+        SELECT COUNT(*)
+        FROM follow f
+                 INNER JOIN user u ON u.id = f.followeeId
+        WHERE f.followerId = #{followerId}
+        <include refid="FolloweeListFilters" />
+    </select>
+
+    <select id="selectFolloweeIdsPage" resultType="long">
+        SELECT f.followeeId
+        FROM follow f
+                 INNER JOIN user u ON u.id = f.followeeId
+        WHERE f.followerId = #{followerId}
+        <include refid="FolloweeListFilters" />
+        ORDER BY f.createTime DESC, f.id DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countFollowerUsers" resultType="long">
+        SELECT COUNT(*)
+        FROM follow f
+                 INNER JOIN user u ON u.id = f.followerId
+        WHERE f.followeeId = #{followeeId}
+        <include refid="FollowerListFilters" />
+    </select>
+
+    <select id="selectFollowerIdsPage" resultType="long">
+        SELECT f.followerId
+        FROM follow f
+                 INNER JOIN user u ON u.id = f.followerId
+        WHERE f.followeeId = #{followeeId}
+        <include refid="FollowerListFilters" />
+        ORDER BY f.createTime DESC, f.id DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+</mapper>
+
